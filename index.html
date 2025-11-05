@@ -6,7 +6,7 @@
   <title>Residential Yard Paving Compliance Calculator — Hercules §13-30.750</title>
   <style>
     :root{ --bg:#0b1020; --panel:#121831; --muted:#6b7296; --text:#e6e9f8; --accent:#7aa9ff; --good:#1fbf75; --bad:#ff6b6b; --warn:#ffb44c; }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"}
     a{color:var(--accent);} .wrap{max-width:1100px;margin:0 auto;padding:28px}
     h1{font-size:1.6rem;margin:0 0 16px} h2{font-size:1.1rem;margin:28px 0 8px;color:#cfd6fb}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -50,7 +50,9 @@
           <label for="apn">Assessor's Parcel Number (APN)</label>
           <input id="apn" type="text" placeholder="e.g., 404-123-015" />
         </div>
-        <div class="btns"><button id="lookupAPN">Lookup by APN</button></div>
+        <div class="btns">
+          <button id="lookupAPN">Lookup by APN</button>
+        </div>
         <div class="hr"></div>
         <div class="row">
           <label for="addr">Street Address (optional)</label>
@@ -61,12 +63,12 @@
           <select id="addrChoices" style="display:none"></select>
         </div>
         <div id="apnStatus" class="alert warn" style="display:none"></div>
-        <p class="tiny">Looks up APN and composes address from <code>S_STR_NBR</code> + <code>S_STR_NM</code>. Lot/Building areas remain manual unless present in your layer.</p>
+        <p class="tiny">Looks up APN and composes address from <code>S_STR_NBR</code> + <code>S_STR_NM</code>. <strong>Lot area</strong> auto-fills from the parcel <em>geometry</em>. Building footprint remains manual.</p>
       </div>
 
       <div class="panel">
         <h2>1) Site Basics</h2>
-        <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="0.01" placeholder="e.g., 6,000"/></div>
+        <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="0.01" placeholder="auto from parcel or enter manually"/></div>
         <div class="row"><label for="zone">Zoning</label>
           <select id="zone">
             <option value="RS-L">RS-L (Low Density Residential)</option>
@@ -154,16 +156,14 @@
 <script>
   const $ = (id)=>document.getElementById(id);
 
-  // ====== AGOL Feature Layer (by Item ID) ======
+  // ====== Your ArcGIS Online hosted layer (by Item ID) ======
   const ARC_ITEM_ID = '5d45f47135e04a328052d0876cc0a7e2';
   let FEATURE_QUERY_URL = null; // resolved on demand
 
-  // Resolve FeatureServer layer URL from the AGOL item id (anonymous access)
+  // Resolve FeatureServer layer URL from the AGOL item id (anonymous access OK if the item is public)
   async function resolveLayerUrl(){
-    // 1) Item JSON has the service URL for hosted feature layers
     const item = await fetch(`https://www.arcgis.com/sharing/rest/content/items/${ARC_ITEM_ID}?f=json`).then(r=>r.json());
     if (!item || !item.url) throw new Error('AGOL item url not found');
-    // 2) Discover layers; pick the one that has APN (fallback to first)
     const svc = await fetch(`${item.url}?f=json`).then(r=>r.json());
     if (!svc || !Array.isArray(svc.layers) || !svc.layers.length) throw new Error('No layers in service');
     let targetLayer = svc.layers[0];
@@ -171,37 +171,43 @@
       const hasAPN = Array.isArray(lyr.fields) && lyr.fields.some(f=> f.name.toUpperCase()==='APN');
       if (hasAPN){ targetLayer = lyr; break; }
     }
-    FEATURE_QUERY_URL = `${item.url.replace(/\\/+$/,'')}/${targetLayer.id}/query`;
+    FEATURE_QUERY_URL = `${item.url.replace(/\/+$/,'')}/${targetLayer.id}/query`;
   }
 
-  // Ask for all fields so we can pick off optional lot/building area names if present
+  // Ask for all fields + geometry (we'll compute area from geometry). Use Web Mercator so units are meters.
   const OUTFIELDS = '*';
+  const OUTSR = '102100'; // Web Mercator Auxiliary Sphere (meters)
+
+  // ---- Geometry helpers ----
+  // Signed area of a ring (array of [x,y]) in projected units (square meters when outSR=102100)
+  function ringSignedArea(ring){
+    let s = 0; for (let i=0, j=ring.length-1; i<ring.length; j=i++) s += (ring[j][0]*ring[i][1] - ring[i][0]*ring[j][1]);
+    return 0.5 * s;
+  }
+  function polygonAreaSqMeters(geom){
+    if (!geom || !Array.isArray(geom.rings)) return 0;
+    let total = 0;
+    for (const ring of geom.rings){ total += ringSignedArea(ring); }
+    return Math.abs(total); // outer/inner orientations cancel; abs as safety
+  }
+  const M2_TO_SQFT = 10.76391041671;
 
   // Query helper (AGOL CORS-friendly; no proxy)
   async function parcelQuery(params){
     if (!FEATURE_QUERY_URL) await resolveLayerUrl();
+    params.set('outSR', OUTSR);
     const url = `${FEATURE_QUERY_URL}?${params.toString()}`;
     const res = await fetch(url);
     if(!res.ok) throw new Error('Parcel query failed');
     return await res.json();
   }
 
-  // Optional: extract lot/building areas if your layer has them (harmless if not)
-  function extractAreas(attrs){
-    const lotKeys = ['LOTSQFT','LOT_SQFT','LOTAREA','LOT_AREA','LOT_SQ_FEET'];
-    const bldgKeys = ['BLDGSQFT','BLDG_SQFT','BLDGAREA','BUILDING_SQFT','BLDG_SQ_FEET'];
-    const v = (x)=> (typeof x==='number' ? x : parseFloat(x));
-    const lot = lotKeys.map(k=> v(attrs[k])).find(n=> Number.isFinite(n));
-    const bldg = bldgKeys.map(k=> v(attrs[k])).find(n=> Number.isFinite(n));
-    return { lot: lot||0, bldg: bldg||0 };
-  }
-
   // Compose a label from S_STR_NBR + S_STR_NM
   function composeAddress(a){
     const num = (a.S_STR_NBR||'').toString().trim();
     const nm  = (a.S_STR_NM||'').toString().trim();
-    const has = (s)=> s && s !== 'null' && s !== 'undefined';
-    return [has(num)?num:null, has(nm)?nm:null].filter(Boolean).join(' ');
+    const ok = (s)=> s && s !== 'null' && s !== 'undefined';
+    return [ok(num)?num:null, ok(nm)?nm:null].filter(Boolean).join(' ');
   }
 
   // ------- Calculator helpers -------
@@ -283,8 +289,7 @@
     $('fl_pct').textContent = pct(flPct);
     $('rl_pct').textContent = pct(rlPct);
 
-    const setBadge = (id, ok, warn='Complies', fail='Does not comply')=>{
-      const host = $(id); host.innerHTML = ''; host.appendChild(badge(ok, warn, fail)); };
+    const setBadge = (id, ok, warn='Complies', fail='Does not comply')=>{ const host = $(id); host.innerHTML = ''; host.appendChild(badge(ok, warn, fail)); };
     setBadge('fd_badge', fdOK); setBadge('fo_badge', foOK); setBadge('fl_badge', flOK); setBadge('rs_badge', rsOK); setBadge('rl_badge', rlOK);
 
     $('imp_area').textContent = fmt(imp) + ' sf';
@@ -304,33 +309,22 @@
       $('imp_note').textContent = zone==='OTHER' ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.' : '';
     }
 
-    // 120 sf permit note
     const p = $('permit120');
-    if (added > 120) {
-      p.style.display='block'; p.className = 'alert warn';
-      p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`;
-    } else if (added>0) {
-      p.style.display='block'; p.className = 'alert ok';
-      p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`;
-    } else if (added===0) {
-      p.style.display='none';
-    } else {
-      p.style.display='block'; p.className = 'alert ok';
-      p.textContent = 'Net reduction in paving — permit size threshold not triggered.';
-    }
+    if (added > 120) { p.style.display='block'; p.className='alert warn'; p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`; }
+    else if (added>0) { p.style.display='block'; p.className='alert ok'; p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`; }
+    else if (added===0) { p.style.display='none'; }
+    else { p.style.display='block'; p.className='alert ok'; p.textContent = 'Net reduction in paving — permit size threshold not triggered.'; }
 
-    // Area check message
     const ac = $('areaCheck');
     if (areaMsg){ ac.style.display='block'; ac.textContent = areaMsg; }
     else { ac.style.display='none'; ac.textContent=''; }
 
-    // Permit line footer
     $('permitLine').textContent = added? ` (your additions: ~${fmt(added)} sf)` : '';
   }
 
   $('calc').addEventListener('click', calc);
 
-  // ---------- APN Lookup (AGOL)
+  // ---------- AGOL lookups ----------
   async function lookupAPN(){
     const apn = $('apn').value.trim();
     const status = $('apnStatus');
@@ -339,26 +333,27 @@
 
     try{
       const where = `APN='${apn.replaceAll("'","''")}'`;
-      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry: 'false', f: 'json' });
+      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry:'true', f:'json' });
       const data = await parcelQuery(params);
-      const attrs = data.features && data.features[0] && data.features[0].attributes;
-      if(!attrs){ status.className='alert no'; status.textContent='No parcel found for that APN.'; return; }
+      const feat = data.features && data.features[0];
+      if(!feat || !feat.attributes){ status.className='alert no'; status.textContent='No parcel found for that APN.'; return; }
+      const attrs = feat.attributes;
 
-      // Optional lot/building (if your layer has them)
-      const { lot, bldg } = extractAreas(attrs);
-      if (lot) $('lot').value = lot;
-      if (bldg) $('bldg').value = bldg;
+      // Auto-fill lot area from geometry
+      const geom = feat.geometry; // in OUTSR units (meters)
+      const m2 = polygonAreaSqMeters(geom);
+      const sqft = m2 * M2_TO_SQFT;
+      if (sqft>0) $('lot').value = Math.round(sqft);
 
       const compAddr = composeAddress(attrs);
       const pretty = compAddr ? `\nAddress: ${compAddr}` : '';
       status.className='alert ok';
-      status.textContent = `Found APN ${attrs.APN || apn}.${pretty}`;
+      status.textContent = `Found APN ${attrs.APN || apn}.` + pretty + (sqft>0? `\nLot area auto-filled ≈ ${fmt(Math.round(sqft))} sf (from parcel geometry).` : '');
       window.__lookup = attrs;
       calc();
-    }catch(err){ status.className='alert no'; status.textContent='Lookup failed (AGOL). Check layer sharing/permissions or item id.'; console.error(err); }
+    }catch(err){ status.className='alert no'; status.textContent='Lookup failed (AGOL). Check item sharing or layer availability.'; console.error(err); }
   }
 
-  // ---------- Address search (AGOL) using S_STR_NBR + S_STR_NM
   function buildAddressWhere(q){
     const up = (q||'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
     if(!up) return '1=0';
@@ -381,37 +376,39 @@
 
     try{
       const where = buildAddressWhere(addr);
-      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry:'false', orderByFields:'S_STR_NM,S_STR_NBR', resultRecordCount:'25', f:'json' });
+      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry:'true', orderByFields:'S_STR_NM,S_STR_NBR', resultRecordCount:'25', f:'json' });
       const data = await parcelQuery(params);
-      let feats = (data.features||[]).map(f=>f.attributes).filter(Boolean);
+      let feats = (data.features||[]).filter(f=> f && f.attributes);
       if(!feats.length){ status.className='alert no'; status.textContent='No matches. Try number + street (e.g., "123 Palm").'; return; }
 
-      feats.slice(0,25).forEach(a=>{
+      feats.slice(0,25).forEach(f=>{
+        const a = f.attributes;
         const opt = document.createElement('option');
-        opt.value = JSON.stringify(a);
+        opt.value = JSON.stringify(f); // keep geometry for area calc
         const label = `${composeAddress(a) || '(no address)'} — APN ${a.APN || '(unknown)'}`;
         opt.textContent = label;
         choices.appendChild(opt);
       });
       choices.style.display='inline-block';
       status.className='alert ok'; status.textContent=`Select an address from the list (${feats.length} found).`;
-    }catch(err){ status.className='alert no'; status.textContent='Address search failed (AGOL). Check layer sharing/permissions or item id.'; console.error(err); }
+    }catch(err){ status.className='alert no'; status.textContent='Address search failed (AGOL). Check item sharing or layer availability.'; console.error(err); }
   }
 
   function pickAddress(){
     const status = $('apnStatus');
     const selected = $('addrChoices').value; if(!selected) return;
-    const attrs = JSON.parse(selected);
-    const compAddr = composeAddress(attrs);
-    $('apn').value = attrs.APN || '';
+    const f = JSON.parse(selected);
+    const a = f.attributes || {};
+    const compAddr = composeAddress(a);
+    $('apn').value = a.APN || '';
 
-    // Optional: fill lot/building if present
-    const { lot, bldg } = extractAreas(attrs);
-    if (lot) $('lot').value = lot;
-    if (bldg) $('bldg').value = bldg;
+    // Auto-fill lot area from geometry
+    const m2 = polygonAreaSqMeters(f.geometry);
+    const sqft = m2 * M2_TO_SQFT;
+    if (sqft>0) $('lot').value = Math.round(sqft);
 
-    status.className='alert ok'; status.textContent = `Loaded ${compAddr || 'selected address'} (APN ${attrs.APN || '—'}).`;
-    window.__lookup = attrs;
+    status.className='alert ok'; status.textContent = `Loaded ${compAddr || 'selected address'} (APN ${a.APN || '—'}).` + (sqft>0? `\nLot area auto-filled ≈ ${fmt(Math.round(sqft))} sf (from parcel geometry).` : '');
+    window.__lookup = a;
     calc();
   }
 
