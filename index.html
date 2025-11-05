@@ -5,37 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Residential Yard Paving Compliance Calculator — Hercules §13-30.750</title>
   <style>
-    :root{ --bg:#0b1020; --panel:#121831; --muted:#8a90b7; --text:#e6e9f8; --accent:#7aa9ff; --good:#22c786; --bad:#ff6b6b; --warn:#ffb44c; }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"}
-    a{color:var(--accent);} .wrap{max-width:900px;margin:0 auto;padding:28px}
-    h1{font-size:1.6rem;margin:0 0 16px} h2{font-size:1.1rem;margin:24px 0 8px;color:#cfd6fb}
-    .panel{background:var(--panel);border:1px solid #1c2344;border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25);margin-bottom:14px}
+    :root{
+      --bg:#f4f6f9; --panel:#ffffff; --text:#1b2a41; --muted:#64748b; --brand:#1f3f68; --brand-900:#173352; --accent:#d4a017; --line:#e5e9f2;
+      --good:#198754; --bad:#d9534f; --warn:#e39b27;
+    }
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"}
+    a{color:var(--brand);text-decoration:underline;text-underline-offset:2px}
+    a:hover{color:var(--brand-900)}
+    .wrap{max-width:980px;margin:0 auto;padding:28px}
+    h1{font-size:1.75rem;margin:0 0 16px;color:var(--brand)}
+    h2{font-size:1.1rem;margin:24px 0 8px;color:var(--brand)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(31,63,104,.06);margin-bottom:14px}
     .row{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:center;margin:10px 0}
-    label{font-size:.95rem;color:#d7dbff}
-    input[type="number"],select,input[type="text"]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
+    label{font-size:.95rem;color:var(--brand-900)}
+    input[type="number"],select,input[type="text"]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--text)}
     input::placeholder{color:#8590c7}
-    .tiny{font-size:.85rem;color:var(--muted)}
+    .tiny{font-size:.9rem;color:var(--muted)}
     .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600}
-    .ok{background:rgba(34,199,134,.12);color:#b2f2d6;border:1px solid rgba(34,199,134,.35)}
-    .no{background:rgba(255,107,107,.12);color:#ffd5d5;border:1px solid rgba(255,107,107,.35)}
-    .warn{background:rgba(255,180,76,.12);color:#ffe4bd;border:1px solid rgba(255,180,76,.35)}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600;border:1px solid var(--line);background:#f8fafc;color:var(--text)}
+    .ok{background:rgba(25,135,84,.08);color:#0f5132;border-color:rgba(25,135,84,.25)}
+    .no{background:rgba(217,83,79,.08);color:#842029;border-color:rgba(217,83,79,.25)}
+    .warn{background:rgba(227,155,39,.10);color:#7a4a08;border-color:rgba(227,155,39,.28)}
     .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-    .card{background:#0f1635;border:1px solid #2a3466;border-radius:12px;padding:14px}
-    .card h3{margin:0 0 4px;font-size:1rem}
-    .kv{display:flex;justify-content:space-between;margin:4px 0;color:#c7ccef}
-    .kv b{color:#fff}
+    .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 3px 14px rgba(31,63,104,.05)}
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    button{cursor:pointer;background:#1a2350;border:1px solid #31408b;color:#e2e7ff;padding:10px 14px;border-radius:10px;font-weight:600}
-    button:hover{background:#202a61}
-    .hr{height:1px;background:#243066;margin:14px 0}
-    .muted{color:var(--muted)} .msg{margin-top:8px}
+    button{cursor:pointer;background:var(--brand);border:1px solid var(--brand);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;box-shadow:0 2px 0 rgba(0,0,0,.04)}
+    button:hover{background:var(--brand-900);border-color:var(--brand-900)}
+    .hr{height:1px;background:var(--line);margin:14px 0}
     .alert{padding:10px;border-radius:10px;margin-top:10px}
-    .alert.warn{background:rgba(255,180,76,.12);border:1px solid rgba(255,180,76,.35);color:#ffe4bd}
-    .alert.no{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);color:#ffd5d5}
-    .alert.ok{background:rgba(34,199,134,.12);border:1px solid rgba(34,199,134,.35);color:#b2f2d6}
-    .center{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-    .hint{font-size:.8rem;color:#a9b2e6}
+    .alert.warn{background:rgba(227,155,39,.08);border:1px solid rgba(227,155,39,.28);color:#7a4a08}
+    .alert.no{background:rgba(217,83,79,.08);border:1px solid rgba(217,83,79,.28);color:#842029}
+    .alert.ok{background:rgba(25,135,84,.08);border:1px solid rgba(25,135,84,.28);color:#0f5132}
   </style>
 </head>
 <body>
@@ -52,53 +52,55 @@
       <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000"/></div>
       <div class="row"><label for="zone">Zoning</label><select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select></div>
       <div class="row"><label for="bldg">Building footprint (impervious; sf)</label><input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/></div>
-      <p class="tiny">Lot area = total parcel area. Building footprint = plan-view area of all roofed structures.</p>
     </div>
 
     <div class="panel">
       <h2>2) Yard Areas</h2>
       <div class="row"><label for="frontArea">Front yard area (sf)</label><input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800"/></div>
       <div class="row"><label for="rearSideArea">Rear + side yard area (sf)</label><input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600"/></div>
-      <p class="tiny">Front yard = area in front of the primary structure. Rear + side yard = all other yard area.</p>
       <div id="areaCheck" class="alert warn" style="display:none"></div>
     </div>
 
     <div class="panel">
       <h2>3) Existing Paving (before project)</h2>
-      <div class="row"><label for="frontDrive_exist">Front driveway paving (sf)</label><div class="inline"><input id="frontDrive_exist" type="number" min="0" step="1"><label class="hint"><input type="checkbox" id="frontDrive_imperm" checked> Impermeable</label></div></div>
-      <div class="row"><label for="frontOther_exist">Front walkways & other hardscape (sf)</label><div class="inline"><input id="frontOther_exist" type="number" min="0" step="1"><label class="hint"><input type="checkbox" id="frontOther_imperm"> Impermeable</label></div></div>
-      <div class="row"><label for="rearPave_exist">Rear + side paving (sf)</label><div class="inline"><input id="rearPave_exist" type="number" min="0" step="1"><label class="hint"><input type="checkbox" id="rearPave_imperm"> Impermeable</label></div></div>
-      <div class="row"><label>Total existing impermeable paving (sf)</label><input id="imperv_exist" type="number" readonly></div>
-      <p class="tiny">This field is auto-calculated based on which areas you marked as impermeable.</p>
+      <div class="row"><label for="frontDrive_exist">Front driveway paving (sf)</label><input id="frontDrive_exist" type="number" min="0" step="1"/></div>
+      <div class="row"><label for="frontOther_exist">Front walkways & other hardscape (sf)</label><input id="frontOther_exist" type="number" min="0" step="1"/></div>
+      <div class="row"><label for="rearPave_exist">Rear + side paving (sf)</label><input id="rearPave_exist" type="number" min="0" step="1"/></div>
+      <div class="row"><label>Total existing impermeable paving (sf)</label><div id="imperv_exist" class="tiny">—</div></div>
     </div>
 
     <div class="panel">
       <h2>4) Proposed Changes to Impervious Area (use negative numbers for removals)</h2>
-      <div class="row"><label for="frontDrive_delta">Δ Front driveway paving (sf)</label><div class="inline"><input id="frontDrive_delta" type="number" step="1"><select id="frontDrive_delta_type"><option value="IMP" selected>Impermeable</option><option value="PERM">Permeable</option></select></div></div>
-      <div class="row"><label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label><div class="inline"><input id="frontOther_delta" type="number" step="1"><select id="frontOther_delta_type"><option value="IMP">Impermeable</option><option value="PERM" selected>Permeable</option></select></div></div>
-      <div class="row"><label for="rearPave_delta">Δ Rear + side paving (sf)</label><div class="inline"><input id="rearPave_delta" type="number" step="1"><select id="rearPave_delta_type"><option value="IMP">Impermeable</option><option value="PERM" selected>Permeable</option></select></div></div>
-      <div class="row"><label>Total proposed change in impermeable area (sf)</label><input id="imperv_delta" type="number" readonly></div>
-      <div class="btns center"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
+      <div class="row"><label for="frontDrive_delta">Δ Front driveway paving (sf)</label><input id="frontDrive_delta" type="number" step="1"/></div>
+      <div class="row"><label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label><input id="frontOther_delta" type="number" step="1"/></div>
+      <div class="row"><label for="rearPave_delta">Δ Rear + side paving (sf)</label><input id="rearPave_delta" type="number" step="1"/></div>
+      <div class="row"><label>Total proposed change in impermeable area (sf)</label><div id="imperv_delta" class="tiny">—</div></div>
+      <div class="btns"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
       <div id="permit120" class="alert warn" style="display:none"></div>
-    </div>
-
-    <div class="panel" id="results" aria-live="polite">
-      <h2>Results</h2>
-      <div class="cards" id="results_cards"></div>
     </div>
   </div>
 <script>
   const $ = (id)=>document.getElementById(id);
   const fmt = (n)=>isFinite(n)?new Intl.NumberFormat().format(n):'—';
-  const pct = (n)=>isFinite(n)?(n*100).toFixed(1)+'%':'—';
   const readNum=(id)=>parseFloat($(id).value)||0;
-  function calcImpervExisting(){let s=0;if($('frontDrive_imperm').checked)s+=readNum('frontDrive_exist');if($('frontOther_imperm').checked)s+=readNum('frontOther_exist');if($('rearPave_imperm').checked)s+=readNum('rearPave_exist');$('imperv_exist').value=s;return s;}
-  function calcImpervDelta(){let s=0;const fdD=readNum('frontDrive_delta');const foD=readNum('frontOther_delta');const rsD=readNum('rearPave_delta');if($('frontDrive_delta_type').value==='IMP')s+=fdD;if($('frontOther_delta_type').value==='IMP')s+=foD;if($('rearPave_delta_type').value==='IMP')s+=rsD;$('imperv_delta').value=s;return s;}
-  function calc(){calcImpervExisting();calcImpervDelta();}
-  document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{clearTimeout(window.__deb);window.__deb=setTimeout(calc,100);}));
+
+  function calc(){
+    const fd0=readNum('frontDrive_exist');
+    const fo0=readNum('frontOther_exist');
+    const rs0=readNum('rearPave_exist');
+    const fdD=readNum('frontDrive_delta');
+    const foD=readNum('frontOther_delta');
+    const rsD=readNum('rearPave_delta');
+    const existing=fd0+fo0+rs0;
+    const delta=fdD+foD+rsD;
+    $('imperv_exist').textContent=fmt(existing);
+    $('imperv_delta').textContent=fmt(delta);
+  }
+
   $('calc').addEventListener('click',calc);
-  $('reset').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');['frontDrive_imperm'].forEach(id=>$(id).checked=true);['frontOther_imperm','rearPave_imperm'].forEach(id=>$(id).checked=false);calc();});
+  $('reset').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');$('imperv_exist').textContent='—';$('imperv_delta').textContent='—';});
   $('print').addEventListener('click',()=>window.print());
+  document.querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{clearTimeout(window.__deb);window.__deb=setTimeout(calc,100);}));
 </script>
 </body>
 </html>
