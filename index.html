@@ -10,12 +10,12 @@
     a{color:var(--accent);} .wrap{max-width:900px;margin:0 auto;padding:28px}
     h1{font-size:1.6rem;margin:0 0 16px} h2{font-size:1.1rem;margin:24px 0 8px;color:#cfd6fb}
     .panel{background:var(--panel);border:1px solid #1c2344;border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25);margin-bottom:14px}
-    /* Standard label → input layout everywhere */
     .row{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:center;margin:10px 0}
     label{font-size:.95rem;color:#d7dbff}
     input[type="number"],select,input[type="text"]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
     input::placeholder{color:#8590c7}
     .tiny{font-size:.85rem;color:var(--muted)}
+    .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600}
     .ok{background:rgba(34,199,134,.12);color:#b2f2d6;border:1px solid rgba(34,199,134,.35)}
     .no{background:rgba(255,107,107,.12);color:#ffd5d5;border:1px solid rgba(255,107,107,.35)}
@@ -35,277 +35,70 @@
     .alert.no{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);color:#ffd5d5}
     .alert.ok{background:rgba(34,199,134,.12);border:1px solid rgba(34,199,134,.35);color:#b2f2d6}
     .center{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .hint{font-size:.8rem;color:#a9b2e6}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Residential Yard Paving Compliance Calculator <span class="tiny">(Hercules Municipal Code §13-30.750)</span></h1>
 
-    <!-- Info / links panel -->
     <div class="panel">
       <h2>Where to find your official lot & building sizes</h2>
-      <p class="tiny">Don’t have them handy? You can look up recorded information through the County’s ParcelQuest site: <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>. Then enter the numbers below.</p>
+      <p class="tiny">You can look up recorded information through the County’s ParcelQuest site: <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>. Then enter the numbers below.</p>
     </div>
 
-    <!-- 1) Lot & Basics -->
     <div class="panel">
       <h2>1) Lot & Basics</h2>
-      <div class="row">
-        <label for="lot">Lot area (square feet)</label>
-        <input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000" />
-      </div>
-      <div class="row">
-        <label for="zone">Zoning</label>
-        <select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select>
-      </div>
-      <div class="row">
-        <label for="bldg">Building footprint (impervious; square feet)</label>
-        <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800" />
-      </div>
-      <p class="tiny">Lot area = total parcel area. Building footprint = plan‑view area of all roofed structures.</p>
+      <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000"/></div>
+      <div class="row"><label for="zone">Zoning</label><select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select></div>
+      <div class="row"><label for="bldg">Building footprint (impervious; sf)</label><input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/></div>
+      <p class="tiny">Lot area = total parcel area. Building footprint = plan-view area of all roofed structures.</p>
     </div>
 
-    <!-- 2) Yard Areas -->
     <div class="panel">
       <h2>2) Yard Areas</h2>
-      <div class="row">
-        <label for="frontArea">Front yard area (sf)</label>
-        <input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800" />
-      </div>
-      <div class="row">
-        <label for="rearSideArea">Rear + side yard area (sf)</label>
-        <input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600" />
-      </div>
-      <p class="tiny">Front yard = area in front of the primary structure. Rear + side yard = the rest of the yard behind the front of the home.</p>
+      <div class="row"><label for="frontArea">Front yard area (sf)</label><input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800"/></div>
+      <div class="row"><label for="rearSideArea">Rear + side yard area (sf)</label><input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600"/></div>
+      <p class="tiny">Front yard = area in front of the primary structure. Rear + side yard = all other yard area.</p>
       <div id="areaCheck" class="alert warn" style="display:none"></div>
     </div>
 
-    <!-- 3) Existing Paving -->
     <div class="panel">
       <h2>3) Existing Paving (before project)</h2>
-      <div class="row">
-        <label for="frontDrive_exist">Front driveway paving (sf)</label>
-        <input id="frontDrive_exist" type="number" min="0" step="1" />
-      </div>
-      <div class="row">
-        <label for="frontOther_exist">Front walkways & other hardscape (sf)</label>
-        <input id="frontOther_exist" type="number" min="0" step="1" />
-      </div>
-      <div class="row">
-        <label for="rearPave_exist">Rear + side paving (all hardscape; sf)</label>
-        <input id="rearPave_exist" type="number" min="0" step="1" />
-      </div>
-      <div class="row">
-        <label for="imperv_exist">Impermeable paving (subset of above; sf)</label>
-        <input id="imperv_exist" type="number" min="0" step="1" placeholder="exclude permeable pavers" />
-      </div>
-      <p class="tiny">Impermeable = concrete, asphalt, compacted gravel, etc. Permeable pavers still count toward yard hardscape limits but not toward lot‑wide impervious for stormwater.</p>
+      <div class="row"><label for="frontDrive_exist">Front driveway paving (sf)</label><div class="inline"><input id="frontDrive_exist" type="number" min="0" step="1"><label class="hint"><input type="checkbox" id="frontDrive_imperm" checked> Impermeable</label></div></div>
+      <div class="row"><label for="frontOther_exist">Front walkways & other hardscape (sf)</label><div class="inline"><input id="frontOther_exist" type="number" min="0" step="1"><label class="hint"><input type="checkbox" id="frontOther_imperm"> Impermeable</label></div></div>
+      <div class="row"><label for="rearPave_exist">Rear + side paving (sf)</label><div class="inline"><input id="rearPave_exist" type="number" min="0" step="1"><label class="hint"><input type="checkbox" id="rearPave_imperm"> Impermeable</label></div></div>
+      <div class="row"><label>Total existing impermeable paving (sf)</label><input id="imperv_exist" type="number" readonly></div>
+      <p class="tiny">This field is auto-calculated based on which areas you marked as impermeable.</p>
     </div>
 
-    <!-- 4) Proposed Changes -->
     <div class="panel">
-      <h2>4) Proposed Changes (use negative numbers for removals)</h2>
-      <div class="row">
-        <label for="frontDrive_delta">Δ Front driveway paving (sf)</label>
-        <input id="frontDrive_delta" type="number" step="1" placeholder="e.g., 120 or -120" />
-      </div>
-      <div class="row">
-        <label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label>
-        <input id="frontOther_delta" type="number" step="1" />
-      </div>
-      <div class="row">
-        <label for="rearPave_delta">Δ Rear + side paving (sf)</label>
-        <input id="rearPave_delta" type="number" step="1" />
-      </div>
-      <div class="row">
-        <label for="imperv_delta">Δ Impermeable paving (sf)</label>
-        <input id="imperv_delta" type="number" step="1" placeholder="+ add / − remove" />
-      </div>
-      <div class="btns center">
-        <button id="calc">Calculate</button>
-        <button id="reset">Reset</button>
-        <button id="print">Print / Save PDF</button>
-        <span class="tiny">Calculator runs automatically when you type.</span>
-      </div>
+      <h2>4) Proposed Changes to Impervious Area (use negative numbers for removals)</h2>
+      <div class="row"><label for="frontDrive_delta">Δ Front driveway paving (sf)</label><div class="inline"><input id="frontDrive_delta" type="number" step="1"><select id="frontDrive_delta_type"><option value="IMP" selected>Impermeable</option><option value="PERM">Permeable</option></select></div></div>
+      <div class="row"><label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label><div class="inline"><input id="frontOther_delta" type="number" step="1"><select id="frontOther_delta_type"><option value="IMP">Impermeable</option><option value="PERM" selected>Permeable</option></select></div></div>
+      <div class="row"><label for="rearPave_delta">Δ Rear + side paving (sf)</label><div class="inline"><input id="rearPave_delta" type="number" step="1"><select id="rearPave_delta_type"><option value="IMP">Impermeable</option><option value="PERM" selected>Permeable</option></select></div></div>
+      <div class="row"><label>Total proposed change in impermeable area (sf)</label><input id="imperv_delta" type="number" readonly></div>
+      <div class="btns center"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
       <div id="permit120" class="alert warn" style="display:none"></div>
     </div>
 
-    <!-- Results -->
     <div class="panel" id="results" aria-live="polite">
       <h2>Results</h2>
-      <div class="cards">
-        <div class="card" id="card_front_drive">
-          <h3>Front: Driveway ≤ 35% of front yard</h3>
-          <div class="kv"><span>Driveway area</span><b id="fd_area">—</b></div>
-          <div class="kv"><span>Percent of front yard</span><b id="fd_pct">—</b></div>
-          <div class="center"><span id="fd_badge" class="badge">—</span></div>
-        </div>
-        <div class="card" id="card_front_other">
-          <h3>Front: Walkways & other hardscape ≤ 25%</h3>
-          <div class="kv"><span>Other hardscape area</span><b id="fo_area">—</b></div>
-          <div class="kv"><span>Percent of front yard</span><b id="fo_pct">—</b></div>
-          <div class="center"><span id="fo_badge" class="badge">—</span></div>
-        </div>
-        <div class="card" id="card_front_land">
-          <h3>Front: Landscaped area ≥ 40%</h3>
-          <div class="kv"><span>Landscaped area</span><b id="fl_area">—</b></div>
-          <div class="kv"><span>Percent of front yard</span><b id="fl_pct">—</b></div>
-          <div class="center"><span id="fl_badge" class="badge">—</span></div>
-        </div>
-        <div class="card" id="card_rs_pave">
-          <h3>Rear + side: Total paving ≤ 60%</h3>
-          <div class="kv"><span>Total paving</span><b id="rs_area">—</b></div>
-          <div class="kv"><span>Percent of rear + side</span><b id="rs_pct">—</b></div>
-          <div class="center"><span id="rs_badge" class="badge">—</span></div>
-        </div>
-        <div class="card" id="card_rs_land">
-          <h3>Rear + side: Landscaped area ≥ 40%</h3>
-          <div class="kv"><span>Landscaped area</span><b id="rl_area">—</b></div>
-          <div class="kv"><span>Percent of rear + side</span><b id="rl_pct">—</b></div>
-          <div class="center"><span id="rl_badge" class="badge">—</span></div>
-        </div>
-        <div class="card" id="card_storm">
-          <h3>Stormwater: Impervious coverage (lot-wide)</h3>
-          <div class="kv"><span>Impervious total (bldg + paving)</span><b id="imp_area">—</b></div>
-          <div class="kv"><span>Percent of lot</span><b id="imp_pct">—</b></div>
-          <div class="center"><span id="imp_badge" class="badge">—</span></div>
-          <div id="imp_note" class="muted msg"></div>
-        </div>
-      </div>
-      <div class="hr"></div>
-      <div class="tiny">
-        <div><strong>Permit trigger:</strong> New paving & hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div>
-        <div>“Landscaped area” excludes pavers, bricks, and other hard surfaces (even if permeable). Calculations are advisory; verify with the City. Source: <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.</div>
-      </div>
+      <div class="cards" id="results_cards"></div>
     </div>
   </div>
-
 <script>
   const $ = (id)=>document.getElementById(id);
-
-  // --- formatting helpers ---
-  const fmt = (n)=> isFinite(n)? new Intl.NumberFormat().format(n): '—';
-  const pct = (n)=> isFinite(n)? (n*100).toFixed(1)+'%':'—';
-  function readNum(id){ const v = parseFloat($(id).value); return isNaN(v)? 0 : v; }
-  function setBadge(id, ok, on='Complies', off='Does not comply'){
-    const el = $(id); el.className = 'badge ' + (ok? 'ok':'no'); el.textContent = (ok? '✔ ' + on : '✖ ' + off);
-  }
-
-  function calc(){
-    // Basics
-    const lot = readNum('lot');
-    const zone = $('zone').value;
-    const bldg = readNum('bldg');
-    const frontArea = readNum('frontArea');
-    const rearSideArea = readNum('rearSideArea');
-
-    // Existing
-    const fd0 = readNum('frontDrive_exist');
-    const fo0 = readNum('frontOther_exist');
-    const rs0 = readNum('rearPave_exist');
-    const imp0 = readNum('imperv_exist');
-
-    // Deltas
-    const fdD = readNum('frontDrive_delta');
-    const foD = readNum('frontOther_delta');
-    const rsD = readNum('rearPave_delta');
-    const impD = readNum('imperv_delta');
-
-    // Totals after
-    const fd = Math.max(0, fd0 + fdD);
-    const fo = Math.max(0, fo0 + foD);
-    const rs = Math.max(0, rs0 + rsD);
-
-    // Landscaped areas (excludes hard surfaces)
-    const frontLand = Math.max(0, frontArea - (fd + fo));
-    const rearLand  = Math.max(0, rearSideArea - rs);
-
-    // % values
-    const fdPct = frontArea>0 ? fd/frontArea : NaN;
-    const foPct = frontArea>0 ? fo/frontArea : NaN;
-    const flPct = frontArea>0 ? frontLand/frontArea : NaN;
-    const rsPct = rearSideArea>0 ? rs/rearSideArea : NaN;
-    const rlPct = rearSideArea>0 ? rearLand/rearSideArea : NaN;
-
-    // Compliance checks
-    const fdOK = fdPct <= 0.35 + 1e-9; // Driveway ≤ 35%
-    const foOK = foPct <= 0.25 + 1e-9; // Other hardscape ≤ 25%
-    const flOK = flPct >= 0.40 - 1e-9; // Landscape ≥ 40%
-    const rsOK = rsPct <= 0.60 + 1e-9; // Rear+side paving ≤ 60%
-    const rlOK = rlPct >= 0.40 - 1e-9; // Rear+side landscape ≥ 40%
-
-    // Stormwater / impervious
-    const imp = Math.max(0, imp0 + impD) + bldg; // impervious paving + building
-    const impPct = lot>0 ? imp/lot : NaN;
-    const impOver = zone==='RS-L' ? impPct>0.47+1e-9 : false;
-
-    // Permit trigger (only count additions, not removals)
-    const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
-
-    // Area cross-check
-    const sumKnown = bldg + frontArea + rearSideArea;
-    const areaMsg = (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03)
-      ? `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`
-      : '';
-
-    // --- Write UI ---
-    $('fd_area').textContent = fmt(fd) + ' sf';
-    $('fo_area').textContent = fmt(fo) + ' sf';
-    $('rs_area').textContent = fmt(rs) + ' sf';
-    $('fl_area').textContent = fmt(frontLand) + ' sf';
-    $('rl_area').textContent = fmt(rearLand) + ' sf';
-
-    $('fd_pct').textContent = pct(fdPct);
-    $('fo_pct').textContent = pct(foPct);
-    $('rs_pct').textContent = pct(rsPct);
-    $('fl_pct').textContent = pct(flPct);
-    $('rl_pct').textContent = pct(rlPct);
-
-    setBadge('fd_badge', fdOK);
-    setBadge('fo_badge', foOK);
-    setBadge('fl_badge', flOK);
-    setBadge('rs_badge', rsOK);
-    setBadge('rl_badge', rlOK);
-
-    $('imp_area').textContent = fmt(imp) + ' sf';
-    $('imp_pct').textContent = pct(impPct);
-    const impHost = $('imp_badge');
-    if (!isFinite(impPct)) { impHost.className='badge warn'; impHost.textContent='ℹ Enter lot & impervious inputs'; $('imp_note').textContent=''; }
-    else if (zone==='RS-L' && impOver) { impHost.className='badge no'; impHost.textContent='✖ Exceeds 47% (RS-L) — engineer calculations required'; $('imp_note').textContent='Per §13-30.750(C), if impervious (incl. structures) is > 47% in RS-L, submit civil engineer runoff calcs to the City Engineer.'; }
-    else { impHost.className='badge ok'; impHost.textContent='✔ Within advisory RS-L threshold'; $('imp_note').textContent = zone==='OTHER' ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.' : ''; }
-
-    const p = $('permit120');
-    if (added > 120) { p.style.display='block'; p.className='alert warn'; p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`; }
-    else if (added>0) { p.style.display='block'; p.className='alert ok'; p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`; }
-    else if (added===0) { p.style.display='none'; }
-    else { p.style.display='block'; p.className='alert ok'; p.textContent = 'Net reduction in paving — permit size threshold not triggered.'; }
-
-    const ac = $('areaCheck');
-    if (areaMsg){ ac.style.display='block'; ac.textContent = areaMsg; }
-    else { ac.style.display='none'; ac.textContent=''; }
-
-    $('permitLine').textContent = added? ` (your additions: ~${fmt(added)} sf)` : '';
-  }
-
-  // Buttons + live updates
-  $('calc').addEventListener('click', calc);
-  $('reset').addEventListener('click', ()=>{
-    document.querySelectorAll('input').forEach(i=> i.value='');
-    $('zone').value='RS-L';
-    $('permit120').style.display='none';
-    $('areaCheck').style.display='none';
-    document.querySelectorAll('#results b').forEach(b=> b.textContent='—');
-    document.querySelectorAll('#results .badge').forEach(s=>{s.className='badge'; s.textContent='—'});
-    $('imp_note').textContent='';
-    $('permitLine').textContent='';
-  });
-  $('print').addEventListener('click', ()=> window.print());
-
-  // Auto-calc on input for instant feedback
-  document.querySelectorAll('input, select').forEach(el=>{
-    el.addEventListener('input', ()=>{ clearTimeout(window.__debounce); window.__debounce = setTimeout(calc, 120); });
-  });
+  const fmt = (n)=>isFinite(n)?new Intl.NumberFormat().format(n):'—';
+  const pct = (n)=>isFinite(n)?(n*100).toFixed(1)+'%':'—';
+  const readNum=(id)=>parseFloat($(id).value)||0;
+  function calcImpervExisting(){let s=0;if($('frontDrive_imperm').checked)s+=readNum('frontDrive_exist');if($('frontOther_imperm').checked)s+=readNum('frontOther_exist');if($('rearPave_imperm').checked)s+=readNum('rearPave_exist');$('imperv_exist').value=s;return s;}
+  function calcImpervDelta(){let s=0;const fdD=readNum('frontDrive_delta');const foD=readNum('frontOther_delta');const rsD=readNum('rearPave_delta');if($('frontDrive_delta_type').value==='IMP')s+=fdD;if($('frontOther_delta_type').value==='IMP')s+=foD;if($('rearPave_delta_type').value==='IMP')s+=rsD;$('imperv_delta').value=s;return s;}
+  function calc(){calcImpervExisting();calcImpervDelta();}
+  document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{clearTimeout(window.__deb);window.__deb=setTimeout(calc,100);}));
+  $('calc').addEventListener('click',calc);
+  $('reset').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');['frontDrive_imperm'].forEach(id=>$(id).checked=true);['frontOther_imperm','rearPave_imperm'].forEach(id=>$(id).checked=false);calc();});
+  $('print').addEventListener('click',()=>window.print());
 </script>
 </body>
 </html>
-
