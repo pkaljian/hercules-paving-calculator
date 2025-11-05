@@ -5,150 +5,177 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Residential Yard Paving Compliance Calculator — Hercules §13-30.750</title>
   <style>
-    :root{ --bg:#0b1020; --panel:#121831; --muted:#6b7296; --text:#e6e9f8; --accent:#7aa9ff; --good:#1fbf75; --bad:#ff6b6b; --warn:#ffb44c; }
+    :root{ --bg:#0b1020; --panel:#121831; --muted:#8a90b7; --text:#e6e9f8; --accent:#7aa9ff; --good:#22c786; --bad:#ff6b6b; --warn:#ffb44c; }
     html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"}
-    a{color:var(--accent);} .wrap{max-width:1100px;margin:0 auto;padding:28px}
-    h1{font-size:1.6rem;margin:0 0 16px} h2{font-size:1.1rem;margin:28px 0 8px;color:#cfd6fb}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .panel{background:var(--panel);border:1px solid #1c2344;border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
-    .row{display:grid;grid-template-columns:1.3fr .7fr;gap:10px;align-items:end;margin:8px 0}
+    a{color:var(--accent);} .wrap{max-width:900px;margin:0 auto;padding:28px}
+    h1{font-size:1.6rem;margin:0 0 16px} h2{font-size:1.1rem;margin:24px 0 8px;color:#cfd6fb}
+    .panel{background:var(--panel);border:1px solid #1c2344;border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25);margin-bottom:14px}
+    .row{display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:end;margin:8px 0}
+    .row.two{grid-template-columns:1fr 1fr}
     label{font-size:.9rem;color:#c7ccef}
-    input[type="number"],select,input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
-    input::placeholder{color:#8590c7}
-    .tiny{font-size:.8rem;color:var(--muted)} .inline{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    input[type="number"],select{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
+    input[type="number"]::placeholder{color:#8590c7}
+    .tiny{font-size:.85rem;color:var(--muted)}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600}
-    .ok{background:rgba(31,191,117,.12);color:#a8f0c9;border:1px solid rgba(31,191,117,.3)}
-    .no{background:rgba(255,107,107,.12);color:#ffc9c9;border:1px solid rgba(255,107,107,.3)}
-    .warn{background:rgba(255,180,76,.12);color:#ffe4bd;border:1px solid rgba(255,180,76,.3)}
+    .ok{background:rgba(34,199,134,.12);color:#b2f2d6;border:1px solid rgba(34,199,134,.35)}
+    .no{background:rgba(255,107,107,.12);color:#ffd5d5;border:1px solid rgba(255,107,107,.35)}
+    .warn{background:rgba(255,180,76,.12);color:#ffe4bd;border:1px solid rgba(255,180,76,.35)}
     .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
     .card{background:#0f1635;border:1px solid #2a3466;border-radius:12px;padding:14px}
     .card h3{margin:0 0 4px;font-size:1rem}
     .kv{display:flex;justify-content:space-between;margin:4px 0;color:#c7ccef}
     .kv b{color:#fff}
-    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     button{cursor:pointer;background:#1a2350;border:1px solid #31408b;color:#e2e7ff;padding:10px 14px;border-radius:10px;font-weight:600}
     button:hover{background:#202a61}
     .hr{height:1px;background:#243066;margin:14px 0}
-    .muted{color:var(--muted)} .msg{margin-top:10px}
-    .foot{margin-top:14px;font-size:.9rem;color:#c7ccef}
+    .muted{color:var(--muted)} .msg{margin-top:8px}
     .alert{padding:10px;border-radius:10px;margin-top:10px}
-    .alert.warn{background:rgba(255,180,76,.12);border:1px solid rgba(255,180,76,.3);color:#ffe4bd}
-    .alert.no{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);color:#ffc9c9}
-    .alert.ok{background:rgba(31,191,117,.12);border:1px solid rgba(31,191,117,.3);color:#a8f0c9}
-    .flex{display:flex;gap:10px;flex-wrap:wrap}
+    .alert.warn{background:rgba(255,180,76,.12);border:1px solid rgba(255,180,76,.35);color:#ffe4bd}
+    .alert.no{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);color:#ffd5d5}
+    .alert.ok{background:rgba(34,199,134,.12);border:1px solid rgba(34,199,134,.35);color:#b2f2d6}
+    .center{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Residential Yard Paving Compliance Calculator <span class="tiny">(Hercules Municipal Code §13-30.750)</span></h1>
 
-    <div class="grid">
-      <!-- 0) Parcel Lookup Panel -->
-      <div class="panel">
-        <h2>0) Parcel Lookup (APN / Address)</h2>
-        <div class="row">
-          <label for="apn">Assessor's Parcel Number (APN)</label>
-          <input id="apn" type="text" placeholder="e.g., 404-123-015" />
+    <!-- Simple, input-only workflow -->
+    <div class="panel">
+      <h2>1) Lot & Basics</h2>
+      <div class="row two">
+        <div>
+          <label for="lot">Lot area (square feet)</label>
+          <input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000" />
         </div>
-        <div class="btns">
-          <button id="lookupAPN">Lookup by APN</button>
+        <div>
+          <label for="zone">Zoning</label>
+          <select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select>
         </div>
-        <div class="hr"></div>
-        <div class="row">
-          <label for="addr">Street Address (optional)</label>
-          <input id="addr" type="text" placeholder="e.g., 123 Palm" />
-        </div>
-        <div class="btns">
-          <button id="lookupADDR">Search by Address</button>
-          <select id="addrChoices" style="display:none"></select>
-        </div>
-        <div id="apnStatus" class="alert warn" style="display:none"></div>
-        <p class="tiny">Looks up APN and composes address from <code>S_STR_NBR</code> + <code>S_STR_NM</code>. <strong>Lot area</strong> auto-fills from the parcel <em>geometry</em>. Building footprint remains manual.</p>
       </div>
-
-      <div class="panel">
-        <h2>1) Site Basics</h2>
-        <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="0.01" placeholder="auto from parcel or enter manually"/></div>
-        <div class="row"><label for="zone">Zoning</label>
-          <select id="zone">
-            <option value="RS-L">RS-L (Low Density Residential)</option>
-            <option value="OTHER">All other residential zones</option>
-          </select>
-        </div>
-        <div class="row"><label for="bldg">Building footprint (impervious; sf)</label><input id="bldg" type="number" min="0" step="0.01" placeholder="e.g., 1,800"/></div>
-        <div class="hr"></div>
-        <h2>2) Yard Areas (measured plan-view)</h2>
-        <div class="row"><label for="frontArea">Front yard area (sf)</label><input id="frontArea" type="number" min="0" step="0.01"/></div>
-        <div class="row"><label for="rearSideArea">Rear + side yard combined area (sf)</label><input id="rearSideArea" type="number" min="0" step="0.01"/></div>
-        <div id="areaCheck" class="alert warn" style="display:none"></div>
+      <div class="row">
+        <label for="bldg">Building footprint (impervious; square feet)</label>
+        <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800" />
       </div>
+      <p class="tiny">Tip: Lot area is the total parcel area in square feet. Building footprint is the plan-view area of all roofed structures.</p>
+    </div>
 
-      <div class="panel">
-        <h2>3) Existing Paving (before project)</h2>
-        <div class="row"><label for="frontDrive_exist">Front driveway paving (sf)</label><input id="frontDrive_exist" type="number" min="0" step="0.01"/></div>
-        <div class="row"><label for="frontOther_exist">Front walkways & other hardscape (sf)</label><input id="frontOther_exist" type="number" min="0" step="0.01"/></div>
-        <div class="row"><label for="rearPave_exist">Rear + side paving (all hardscape; sf)</label><input id="rearPave_exist" type="number" min="0" step="0.01"/></div>
-        <div class="row"><label for="imperv_exist">Impermeable paving (subset of above; sf)</label><input id="imperv_exist" type="number" min="0" step="0.01" placeholder="Exclude permeable pavers"/></div>
-      </div>
-
-      <div class="panel">
-        <h2>4) Proposed Changes (use negative numbers for removals)</h2>
-        <div class="row"><label for="frontDrive_delta">Δ Front driveway paving (sf)</label><input id="frontDrive_delta" type="number" step="0.01"/></div>
-        <div class="row"><label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label><input id="frontOther_delta" type="number" step="0.01"/></div>
-        <div class="row"><label for="rearPave_delta">Δ Rear + side paving (sf)</label><input id="rearPave_delta" type="number" step="0.01"/></div>
-        <div class="row"><label for="imperv_delta">Δ Impermeable paving (sf)</label><input id="imperv_delta" type="number" step="0.01" placeholder="+ add / − remove"/></div>
-
-        <div class="btns"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
-        <div id="permit120" class="alert warn" style="display:none"></div>
-      </div>
-
-      <div class="panel" id="results" aria-live="polite">
-        <h2>Results</h2>
-        <div class="cards">
-          <div class="card" id="card_front_drive">
-            <h3>Front: Driveway ≤ 35% of front yard</h3>
-            <div class="kv"><span>Driveway area</span><b id="fd_area">—</b></div>
-            <div class="kv"><span>Percent of front yard</span><b id="fd_pct">—</b></div>
-            <div class="inline"><span id="fd_badge" class="badge">—</span></div>
-          </div>
-          <div class="card" id="card_front_other">
-            <h3>Front: Walkways & other hardscape ≤ 25%</h3>
-            <div class="kv"><span>Other hardscape area</span><b id="fo_area">—</b></div>
-            <div class="kv"><span>Percent of front yard</span><b id="fo_pct">—</b></div>
-            <div class="inline"><span id="fo_badge" class="badge">—</span></div>
-          </div>
-          <div class="card" id="card_front_land">
-            <h3>Front: Landscaped area ≥ 40%</h3>
-            <div class="kv"><span>Landscaped area</span><b id="fl_area">—</b></div>
-            <div class="kv"><span>Percent of front yard</span><b id="fl_pct">—</b></div>
-            <div class="inline"><span id="fl_badge" class="badge">—</span></div>
-          </div>
-          <div class="card" id="card_rs_pave">
-            <h3>Rear + side: Total paving ≤ 60%</h3>
-            <div class="kv"><span>Total paving</span><b id="rs_area">—</b></div>
-            <div class="kv"><span>Percent of rear + side</span><b id="rs_pct">—</b></div>
-            <div class="inline"><span id="rs_badge" class="badge">—</span></div>
-          </div>
-          <div class="card" id="card_rs_land">
-            <h3>Rear + side: Landscaped area ≥ 40%</h3>
-            <div class="kv"><span>Landscaped area</span><b id="rl_area">—</b></div>
-            <div class="kv"><span>Percent of rear + side</span><b id="rl_pct">—</b></div>
-            <div class="inline"><span id="rl_badge" class="badge">—</span></div>
-          </div>
-          <div class="card" id="card_storm">
-            <h3>Stormwater: Impervious coverage (lot-wide)</h3>
-            <div class="kv"><span>Impervious total (bldg + paving)</span><b id="imp_area">—</b></div>
-            <div class="kv"><span>Percent of lot</span><b id="imp_pct">—</b></div>
-            <div class="inline"><span id="imp_badge" class="badge">—</span></div>
-            <div id="imp_note" class="muted msg"></div>
-          </div>
+    <div class="panel">
+      <h2>2) Yard Areas</h2>
+      <div class="row two">
+        <div>
+          <label for="frontArea">Front yard area (sf)</label>
+          <input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800" />
         </div>
-        <div class="hr"></div>
-        <div class="foot">
-          <div><strong>Permit trigger:</strong> New paving & hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div>
-          <div class="muted">“Landscaped area” excludes pavers, bricks, and other hard surfaces (even if permeable). Calculations are advisory; verify with the City.<br/>
-          Source: <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.</div>
+        <div>
+          <label for="rearSideArea">Rear + side yard area (sf)</label>
+          <input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600" />
         </div>
+      </div>
+      <p class="tiny">Front yard = area in front of the primary structure. Rear + side yard = the rest of the yard area behind the front of the home.</p>
+      <div id="areaCheck" class="alert warn" style="display:none"></div>
+    </div>
+
+    <div class="panel">
+      <h2>3) Existing Paving (before project)</h2>
+      <div class="row two">
+        <div>
+          <label for="frontDrive_exist">Front driveway paving (sf)</label>
+          <input id="frontDrive_exist" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="frontOther_exist">Front walkways & other hardscape (sf)</label>
+          <input id="frontOther_exist" type="number" min="0" step="1" />
+        </div>
+      </div>
+      <div class="row">
+        <label for="rearPave_exist">Rear + side paving (all hardscape; sf)</label>
+        <input id="rearPave_exist" type="number" min="0" step="1" />
+      </div>
+      <div class="row">
+        <label for="imperv_exist">Impermeable paving (subset of above; sf)</label>
+        <input id="imperv_exist" type="number" min="0" step="1" placeholder="exclude permeable pavers" />
+      </div>
+      <p class="tiny">Impermeable = concrete, asphalt, compacted gravel, etc. Permeable pavers do not count as impervious for the runoff calc, but do count as hardscape for the front/rear yard rules.</p>
+    </div>
+
+    <div class="panel">
+      <h2>4) Proposed Changes (use negative numbers for removals)</h2>
+      <div class="row two">
+        <div>
+          <label for="frontDrive_delta">Δ Front driveway paving (sf)</label>
+          <input id="frontDrive_delta" type="number" step="1" placeholder="e.g., 120 or -120" />
+        </div>
+        <div>
+          <label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label>
+          <input id="frontOther_delta" type="number" step="1" />
+        </div>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="rearPave_delta">Δ Rear + side paving (sf)</label>
+          <input id="rearPave_delta" type="number" step="1" />
+        </div>
+        <div>
+          <label for="imperv_delta">Δ Impermeable paving (sf)</label>
+          <input id="imperv_delta" type="number" step="1" placeholder="+ add / − remove" />
+        </div>
+      </div>
+      <div class="btns center">
+        <button id="calc">Calculate</button>
+        <button id="reset">Reset</button>
+        <button id="print">Print / Save PDF</button>
+        <span class="tiny">Calculator runs automatically when you type.</span>
+      </div>
+      <div id="permit120" class="alert warn" style="display:none"></div>
+    </div>
+
+    <div class="panel" id="results" aria-live="polite">
+      <h2>Results</h2>
+      <div class="cards">
+        <div class="card" id="card_front_drive">
+          <h3>Front: Driveway ≤ 35% of front yard</h3>
+          <div class="kv"><span>Driveway area</span><b id="fd_area">—</b></div>
+          <div class="kv"><span>Percent of front yard</span><b id="fd_pct">—</b></div>
+          <div class="center"><span id="fd_badge" class="badge">—</span></div>
+        </div>
+        <div class="card" id="card_front_other">
+          <h3>Front: Walkways & other hardscape ≤ 25%</h3>
+          <div class="kv"><span>Other hardscape area</span><b id="fo_area">—</b></div>
+          <div class="kv"><span>Percent of front yard</span><b id="fo_pct">—</b></div>
+          <div class="center"><span id="fo_badge" class="badge">—</span></div>
+        </div>
+        <div class="card" id="card_front_land">
+          <h3>Front: Landscaped area ≥ 40%</h3>
+          <div class="kv"><span>Landscaped area</span><b id="fl_area">—</b></div>
+          <div class="kv"><span>Percent of front yard</span><b id="fl_pct">—</b></div>
+          <div class="center"><span id="fl_badge" class="badge">—</span></div>
+        </div>
+        <div class="card" id="card_rs_pave">
+          <h3>Rear + side: Total paving ≤ 60%</h3>
+          <div class="kv"><span>Total paving</span><b id="rs_area">—</b></div>
+          <div class="kv"><span>Percent of rear + side</span><b id="rs_pct">—</b></div>
+          <div class="center"><span id="rs_badge" class="badge">—</span></div>
+        </div>
+        <div class="card" id="card_rs_land">
+          <h3>Rear + side: Landscaped area ≥ 40%</h3>
+          <div class="kv"><span>Landscaped area</span><b id="rl_area">—</b></div>
+          <div class="kv"><span>Percent of rear + side</span><b id="rl_pct">—</b></div>
+          <div class="center"><span id="rl_badge" class="badge">—</span></div>
+        </div>
+        <div class="card" id="card_storm">
+          <h3>Stormwater: Impervious coverage (lot-wide)</h3>
+          <div class="kv"><span>Impervious total (bldg + paving)</span><b id="imp_area">—</b></div>
+          <div class="kv"><span>Percent of lot</span><b id="imp_pct">—</b></div>
+          <div class="center"><span id="imp_badge" class="badge">—</span></div>
+          <div id="imp_note" class="muted msg"></div>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div class="tiny">
+        <div><strong>Permit trigger:</strong> New paving & hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div>
+        <div>“Landscaped area” excludes pavers, bricks, and other hard surfaces (even if permeable). Calculations are advisory; verify with the City. Source: <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.</div>
       </div>
     </div>
   </div>
@@ -156,70 +183,13 @@
 <script>
   const $ = (id)=>document.getElementById(id);
 
-  // ====== Your ArcGIS Online hosted layer (by Item ID) ======
-  const ARC_ITEM_ID = '5d45f47135e04a328052d0876cc0a7e2';
-  let FEATURE_QUERY_URL = null; // resolved on demand
-
-  // Resolve FeatureServer layer URL from the AGOL item id (anonymous access OK if the item is public)
-  async function resolveLayerUrl(){
-    const item = await fetch(`https://www.arcgis.com/sharing/rest/content/items/${ARC_ITEM_ID}?f=json`).then(r=>r.json());
-    if (!item || !item.url) throw new Error('AGOL item url not found');
-    const svc = await fetch(`${item.url}?f=json`).then(r=>r.json());
-    if (!svc || !Array.isArray(svc.layers) || !svc.layers.length) throw new Error('No layers in service');
-    let targetLayer = svc.layers[0];
-    for (const lyr of svc.layers){
-      const hasAPN = Array.isArray(lyr.fields) && lyr.fields.some(f=> f.name.toUpperCase()==='APN');
-      if (hasAPN){ targetLayer = lyr; break; }
-    }
-    FEATURE_QUERY_URL = `${item.url.replace(/\/+$/,'')}/${targetLayer.id}/query`;
-  }
-
-  // Ask for all fields + geometry (we'll compute area from geometry). Use Web Mercator so units are meters.
-  const OUTFIELDS = '*';
-  const OUTSR = '102100'; // Web Mercator Auxiliary Sphere (meters)
-
-  // ---- Geometry helpers ----
-  // Signed area of a ring (array of [x,y]) in projected units (square meters when outSR=102100)
-  function ringSignedArea(ring){
-    let s = 0; for (let i=0, j=ring.length-1; i<ring.length; j=i++) s += (ring[j][0]*ring[i][1] - ring[i][0]*ring[j][1]);
-    return 0.5 * s;
-  }
-  function polygonAreaSqMeters(geom){
-    if (!geom || !Array.isArray(geom.rings)) return 0;
-    let total = 0;
-    for (const ring of geom.rings){ total += ringSignedArea(ring); }
-    return Math.abs(total); // outer/inner orientations cancel; abs as safety
-  }
-  const M2_TO_SQFT = 10.76391041671;
-
-  // Query helper (AGOL CORS-friendly; no proxy)
-  async function parcelQuery(params){
-    if (!FEATURE_QUERY_URL) await resolveLayerUrl();
-    params.set('outSR', OUTSR);
-    const url = `${FEATURE_QUERY_URL}?${params.toString()}`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('Parcel query failed');
-    return await res.json();
-  }
-
-  // Compose a label from S_STR_NBR + S_STR_NM
-  function composeAddress(a){
-    const num = (a.S_STR_NBR||'').toString().trim();
-    const nm  = (a.S_STR_NM||'').toString().trim();
-    const ok = (s)=> s && s !== 'null' && s !== 'undefined';
-    return [ok(num)?num:null, ok(nm)?nm:null].filter(Boolean).join(' ');
-  }
-
-  // ------- Calculator helpers -------
+  // --- formatting helpers ---
   const fmt = (n)=> isFinite(n)? new Intl.NumberFormat().format(n): '—';
   const pct = (n)=> isFinite(n)? (n*100).toFixed(1)+'%':'—';
-  const badge = (ok, warnText='Complies', failText='Does not comply')=>{
-    const span = document.createElement('span');
-    span.className = 'badge ' + (ok? 'ok':'no');
-    span.textContent = ok? '✔ ' + warnText : '✖ ' + failText;
-    return span;
-  };
   function readNum(id){ const v = parseFloat($(id).value); return isNaN(v)? 0 : v; }
+  function setBadge(id, ok, on='Complies', off='Does not comply'){
+    const el = $(id); el.className = 'badge ' + (ok? 'ok':'no'); el.textContent = (ok? '✔ ' + on : '✖ ' + off);
+  }
 
   function calc(){
     // Basics
@@ -235,7 +205,7 @@
     const rs0 = readNum('rearPave_exist');
     const imp0 = readNum('imperv_exist');
 
-    // Deltas
+    // Deltas (+ add / − remove)
     const fdD = readNum('frontDrive_delta');
     const foD = readNum('frontOther_delta');
     const rsD = readNum('rearPave_delta');
@@ -246,11 +216,11 @@
     const fo = Math.max(0, fo0 + foD);
     const rs = Math.max(0, rs0 + rsD);
 
-    // Landscape (excludes any hard surface)
+    // Landscaped areas (excludes any hard surface)
     const frontLand = Math.max(0, frontArea - (fd + fo));
     const rearLand  = Math.max(0, rearSideArea - rs);
 
-    // %
+    // % values
     const fdPct = frontArea>0 ? fd/frontArea : NaN;
     const foPct = frontArea>0 ? fo/frontArea : NaN;
     const flPct = frontArea>0 ? frontLand/frontArea : NaN;
@@ -272,11 +242,13 @@
     // Permit trigger (only count additions, not removals)
     const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
 
-    // Area sanity check (optional)
+    // Area sanity check
     const sumKnown = bldg + frontArea + rearSideArea;
-    const areaMsg = (lot>0 && sumKnown>0) ? (Math.abs(sumKnown - lot) <= lot*0.03 ? '' : `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`) : '';
+    const areaMsg = (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03)
+      ? `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`
+      : '';
 
-    // Write UI
+    // --- Write UI ---
     $('fd_area').textContent = fmt(fd) + ' sf';
     $('fo_area').textContent = fmt(fo) + ' sf';
     $('rs_area').textContent = fmt(rs) + ' sf';
@@ -289,25 +261,18 @@
     $('fl_pct').textContent = pct(flPct);
     $('rl_pct').textContent = pct(rlPct);
 
-    const setBadge = (id, ok, warn='Complies', fail='Does not comply')=>{ const host = $(id); host.innerHTML = ''; host.appendChild(badge(ok, warn, fail)); };
-    setBadge('fd_badge', fdOK); setBadge('fo_badge', foOK); setBadge('fl_badge', flOK); setBadge('rs_badge', rsOK); setBadge('rl_badge', rlOK);
+    setBadge('fd_badge', fdOK);
+    setBadge('fo_badge', foOK);
+    setBadge('fl_badge', flOK);
+    setBadge('rs_badge', rsOK);
+    setBadge('rl_badge', rlOK);
 
     $('imp_area').textContent = fmt(imp) + ' sf';
     $('imp_pct').textContent = pct(impPct);
-    const impHost = $('imp_badge'); impHost.innerHTML = '';
-    if (!isFinite(impPct)) {
-      impHost.className = 'badge warn';
-      impHost.textContent = 'ℹ Enter lot & impervious inputs';
-      $('imp_note').textContent = '';
-    } else if (zone==='RS-L' && impOver) {
-      impHost.className = 'badge no';
-      impHost.textContent = '✖ Exceeds 47% (RS-L) — engineer calculations required';
-      $('imp_note').textContent = 'Per §13-30.750(C), if impervious (incl. structures) is > 47% in RS-L, submit civil engineer runoff calcs to the City Engineer.';
-    } else {
-      impHost.className = 'badge ok';
-      impHost.textContent = '✔ Within advisory RS-L threshold';
-      $('imp_note').textContent = zone==='OTHER' ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.' : '';
-    }
+    const impHost = $('imp_badge');
+    if (!isFinite(impPct)) { impHost.className='badge warn'; impHost.textContent='ℹ Enter lot & impervious inputs'; $('imp_note').textContent=''; }
+    else if (zone==='RS-L' && impOver) { impHost.className='badge no'; impHost.textContent='✖ Exceeds 47% (RS-L) — engineer calculations required'; $('imp_note').textContent='Per §13-30.750(C), if impervious (incl. structures) is > 47% in RS-L, submit civil engineer runoff calcs to the City Engineer.'; }
+    else { impHost.className='badge ok'; impHost.textContent='✔ Within advisory RS-L threshold'; $('imp_note').textContent = zone==='OTHER' ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.' : ''; }
 
     const p = $('permit120');
     if (added > 120) { p.style.display='block'; p.className='alert warn'; p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`; }
@@ -322,99 +287,8 @@
     $('permitLine').textContent = added? ` (your additions: ~${fmt(added)} sf)` : '';
   }
 
+  // Buttons + live updates
   $('calc').addEventListener('click', calc);
-
-  // ---------- AGOL lookups ----------
-  async function lookupAPN(){
-    const apn = $('apn').value.trim();
-    const status = $('apnStatus');
-    if(!apn){ status.style.display='block'; status.className='alert warn'; status.textContent='Enter an APN to search (e.g., 404-123-015).'; return; }
-    status.style.display='block'; status.className='alert warn'; status.textContent='Looking up parcel…';
-
-    try{
-      const where = `APN='${apn.replaceAll("'","''")}'`;
-      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry:'true', f:'json' });
-      const data = await parcelQuery(params);
-      const feat = data.features && data.features[0];
-      if(!feat || !feat.attributes){ status.className='alert no'; status.textContent='No parcel found for that APN.'; return; }
-      const attrs = feat.attributes;
-
-      // Auto-fill lot area from geometry
-      const geom = feat.geometry; // in OUTSR units (meters)
-      const m2 = polygonAreaSqMeters(geom);
-      const sqft = m2 * M2_TO_SQFT;
-      if (sqft>0) $('lot').value = Math.round(sqft);
-
-      const compAddr = composeAddress(attrs);
-      const pretty = compAddr ? `\nAddress: ${compAddr}` : '';
-      status.className='alert ok';
-      status.textContent = `Found APN ${attrs.APN || apn}.` + pretty + (sqft>0? `\nLot area auto-filled ≈ ${fmt(Math.round(sqft))} sf (from parcel geometry).` : '');
-      window.__lookup = attrs;
-      calc();
-    }catch(err){ status.className='alert no'; status.textContent='Lookup failed (AGOL). Check item sharing or layer availability.'; console.error(err); }
-  }
-
-  function buildAddressWhere(q){
-    const up = (q||'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
-    if(!up) return '1=0';
-    const parts = up.split(' ');
-    const nums = parts.filter(p=> /^\d+$/.test(p));
-    const words = parts.filter(p=> !/^\d+$/.test(p));
-    const clauses = [];
-    for (const n of nums){ clauses.push(`S_STR_NBR LIKE '%${n.replaceAll("'","''")}%'`); }
-    for (const w of words){ clauses.push(`UPPER(S_STR_NM) LIKE '%${w.replaceAll("'","''")}%'`); }
-    return clauses.length? clauses.join(' AND ') : '1=0';
-  }
-
-  async function lookupAddress(){
-    const addr = $('addr').value.trim();
-    const status = $('apnStatus');
-    const choices = $('addrChoices');
-    choices.style.display='none'; choices.innerHTML='';
-    if(!addr){ status.style.display='block'; status.className='alert warn'; status.textContent='Enter part of a street address (e.g., "123 Palm").'; return; }
-    status.style.display='block'; status.className='alert warn'; status.textContent='Searching…';
-
-    try{
-      const where = buildAddressWhere(addr);
-      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry:'true', orderByFields:'S_STR_NM,S_STR_NBR', resultRecordCount:'25', f:'json' });
-      const data = await parcelQuery(params);
-      let feats = (data.features||[]).filter(f=> f && f.attributes);
-      if(!feats.length){ status.className='alert no'; status.textContent='No matches. Try number + street (e.g., "123 Palm").'; return; }
-
-      feats.slice(0,25).forEach(f=>{
-        const a = f.attributes;
-        const opt = document.createElement('option');
-        opt.value = JSON.stringify(f); // keep geometry for area calc
-        const label = `${composeAddress(a) || '(no address)'} — APN ${a.APN || '(unknown)'}`;
-        opt.textContent = label;
-        choices.appendChild(opt);
-      });
-      choices.style.display='inline-block';
-      status.className='alert ok'; status.textContent=`Select an address from the list (${feats.length} found).`;
-    }catch(err){ status.className='alert no'; status.textContent='Address search failed (AGOL). Check item sharing or layer availability.'; console.error(err); }
-  }
-
-  function pickAddress(){
-    const status = $('apnStatus');
-    const selected = $('addrChoices').value; if(!selected) return;
-    const f = JSON.parse(selected);
-    const a = f.attributes || {};
-    const compAddr = composeAddress(a);
-    $('apn').value = a.APN || '';
-
-    // Auto-fill lot area from geometry
-    const m2 = polygonAreaSqMeters(f.geometry);
-    const sqft = m2 * M2_TO_SQFT;
-    if (sqft>0) $('lot').value = Math.round(sqft);
-
-    status.className='alert ok'; status.textContent = `Loaded ${compAddr || 'selected address'} (APN ${a.APN || '—'}).` + (sqft>0? `\nLot area auto-filled ≈ ${fmt(Math.round(sqft))} sf (from parcel geometry).` : '');
-    window.__lookup = a;
-    calc();
-  }
-
-  $('lookupAPN').addEventListener('click', lookupAPN);
-  $('lookupADDR').addEventListener('click', lookupAddress);
-  $('addrChoices').addEventListener('change', pickAddress);
   $('reset').addEventListener('click', ()=>{
     document.querySelectorAll('input').forEach(i=> i.value='');
     $('zone').value='RS-L';
