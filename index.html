@@ -9,18 +9,15 @@
       --bg:#0b1020; --panel:#121831; --muted:#6b7296; --text:#e6e9f8; --accent:#7aa9ff; --good:#1fbf75; --bad:#ff6b6b; --warn:#ffb44c;
     }
     html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"}
-    a{color:var(--accent);}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px}
-    h1{font-size:1.6rem;margin:0 0 16px}
-    h2{font-size:1.1rem;margin:28px 0 8px;color:#cfd6fb}
+    a{color:var(--accent);} .wrap{max-width:1100px;margin:0 auto;padding:28px}
+    h1{font-size:1.6rem;margin:0 0 16px} h2{font-size:1.1rem;margin:28px 0 8px;color:#cfd6fb}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .panel{background:var(--panel);border:1px solid #1c2344;border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
     .row{display:grid;grid-template-columns:1.3fr .7fr;gap:10px;align-items:end;margin:8px 0}
     label{font-size:.9rem;color:#c7ccef}
-    input[type="number"],select{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
-    input[type="number"]::placeholder{color:#8590c7}
-    .tiny{font-size:.8rem;color:var(--muted)}
-    .inline{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    input[type="number"],select,input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
+    input::placeholder{color:#8590c7}
+    .tiny{font-size:.8rem;color:var(--muted)} .inline{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600}
     .ok{background:rgba(31,191,117,.12);color:#a8f0c9;border:1px solid rgba(31,191,117,.3)}
     .no{background:rgba(255,107,107,.12);color:#ffc9c9;border:1px solid rgba(255,107,107,.3)}
@@ -34,8 +31,7 @@
     button{cursor:pointer;background:#1a2350;border:1px solid #31408b;color:#e2e7ff;padding:10px 14px;border-radius:10px;font-weight:600}
     button:hover{background:#202a61}
     .hr{height:1px;background:#243066;margin:14px 0}
-    .muted{color:var(--muted)}
-    .msg{margin-top:10px}
+    .muted{color:var(--muted)} .msg{margin-top:10px}
     .foot{margin-top:14px;font-size:.9rem;color:#c7ccef}
     .alert{padding:10px;border-radius:10px;margin-top:10px}
     .alert.warn{background:rgba(255,180,76,.12);border:1px solid rgba(255,180,76,.3);color:#ffe4bd}
@@ -70,12 +66,8 @@
         </div>
         <div id="apnStatus" class="alert warn" style="display:none"></div>
         <p class="tiny">Auto-fills Lot Area and Building Area (Sq. Ft.) from Contra Costa County Assessor (CCMAP). Verify values before submitting.</p>
-        <div class="btns">
-          <button id="lookupAPN">Lookup by APN</button>
-        </div>
-        <div id="apnStatus" class="alert warn" style="display:none"></div>
-        <p class="tiny">Auto-fills Lot Area and Building Area (Sq. Ft.) from Contra Costa County Assessor (CCMAP). Verify values before submitting.</p>
       </div>
+
       <div class="panel">
         <h2>1) Site Basics</h2>
         <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="0.01" placeholder="e.g., 6,000"/></div>
@@ -168,8 +160,9 @@
   // ArcGIS Feature Service for Contra Costa County Assessor Parcels (CCMAP)
   // If CORS blocks direct calls from your domain, route requests through a small proxy endpoint.
   const FEATURE_URL = 'https://gis.ccmap.us/arcgis/rest/services/CCMAP/AssessorParcels/MapServer/0/query';
-  // Optional: set this to your deployed proxy (Cloudflare Worker) to avoid CORS, e.g., '/api/parcel'
-  const PROXY_URL = ''; // leave blank to call FEATURE_URL directly
+  // Use proxy by default to avoid CORS (Cloudflare Worker route such as '/api/parcel')
+  const PROXY_URL = '/api/parcel';
+
   const fmt = (n)=> isFinite(n)? new Intl.NumberFormat().format(n): '—';
   const pct = (n)=> isFinite(n)? (n*100).toFixed(1)+'%':'—';
   const badge = (ok, warnText='Complies', failText='Does not comply')=>{
@@ -180,8 +173,7 @@
   };
 
   function readNum(id){
-    const v = parseFloat($(id).value);
-    return isNaN(v)? 0 : v;
+    const v = parseFloat($(id).value); return isNaN(v)? 0 : v;
   }
 
   function calc(){
@@ -217,7 +209,6 @@
     const fdPct = frontArea>0 ? fd/frontArea : NaN;
     const foPct = frontArea>0 ? fo/frontArea : NaN;
     const flPct = frontArea>0 ? frontLand/frontArea : NaN;
-
     const rsPct = rearSideArea>0 ? rs/rearSideArea : NaN;
     const rlPct = rearSideArea>0 ? rearLand/rearSideArea : NaN;
 
@@ -225,7 +216,6 @@
     const fdOK = fdPct <= 0.35 + 1e-9; // Driveway ≤ 35%
     const foOK = foPct <= 0.25 + 1e-9; // Other hardscape ≤ 25%
     const flOK = flPct >= 0.40 - 1e-9; // Landscape ≥ 40%
-
     const rsOK = rsPct <= 0.60 + 1e-9; // Rear+side paving ≤ 60%
     const rlOK = rlPct >= 0.40 - 1e-9; // Rear+side landscape ≥ 40%
 
@@ -256,20 +246,12 @@
 
     // Badges
     const setBadge = (id, ok, warn='Complies', fail='Does not comply')=>{
-      const host = $(id);
-      host.innerHTML = '';
-      host.appendChild(badge(ok, warn, fail));
-    };
-    setBadge('fd_badge', fdOK);
-    setBadge('fo_badge', foOK);
-    setBadge('fl_badge', flOK);
-    setBadge('rs_badge', rsOK);
-    setBadge('rl_badge', rlOK);
+      const host = $(id); host.innerHTML = ''; host.appendChild(badge(ok, warn, fail)); };
+    setBadge('fd_badge', fdOK); setBadge('fo_badge', foOK); setBadge('fl_badge', flOK); setBadge('rs_badge', rsOK); setBadge('rl_badge', rlOK);
 
     $('imp_area').textContent = fmt(imp) + ' sf';
     $('imp_pct').textContent = pct(impPct);
-    const impHost = $('imp_badge');
-    impHost.innerHTML = '';
+    const impHost = $('imp_badge'); impHost.innerHTML = '';
     if (!isFinite(impPct)) {
       impHost.className = 'badge warn';
       impHost.textContent = 'ℹ Enter lot & impervious inputs';
@@ -287,18 +269,15 @@
     // 120 sf permit note
     const p = $('permit120');
     if (added > 120) {
-      p.style.display='block';
-      p.className = 'alert warn';
+      p.style.display='block'; p.className = 'alert warn';
       p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`;
     } else if (added>0) {
-      p.style.display='block';
-      p.className = 'alert ok';
+      p.style.display='block'; p.className = 'alert ok';
       p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`;
     } else if (added===0) {
       p.style.display='none';
     } else {
-      p.style.display='block';
-      p.className = 'alert ok';
+      p.style.display='block'; p.className = 'alert ok';
       p.textContent = 'Net reduction in paving — permit size threshold not triggered.';
     }
 
@@ -312,94 +291,63 @@
   }
 
   $('calc').addEventListener('click', calc);
-  // APN Lookup using the Contra Costa CCMAP Feature Service
+
+  // ---------- APN Lookup using the Contra Costa CCMAP Feature Service
   async function lookupAPN(){
     const apn = $('apn').value.trim();
     const status = $('apnStatus');
-    if(!apn){
-      status.style.display='block';
-      status.className='alert warn';
-      status.textContent='Enter an APN to search (e.g., 404-123-015).';
-      return;
-    }
-    status.style.display='block';
-    status.className='alert warn';
-    status.textContent='Looking up parcel…';
+    if(!apn){ status.style.display='block'; status.className='alert warn'; status.textContent='Enter an APN to search (e.g., 404-123-015).'; return; }
+    status.style.display='block'; status.className='alert warn'; status.textContent='Looking up parcel…';
 
     try{
       const where = `APN='${apn.replaceAll("'","''")}'`;
-      const params = new URLSearchParams({
-        where,
-        outFields: 'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT',
-        returnGeometry: 'false',
-        f: 'json'
-      });
+      const params = new URLSearchParams({ where, outFields:'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT', returnGeometry:'false', f:'json' });
       const url = PROXY_URL ? `${PROXY_URL}?${params.toString()}` : `${FEATURE_URL}?${params.toString()}`;
       const res = await fetch(url);
       if(!res.ok) throw new Error('Network error or CORS blocked');
       const data = await res.json();
       const attrs = data.features && data.features[0] && data.features[0].attributes;
-      if(!attrs){
-        status.className='alert no';
-        status.textContent='No parcel found for that APN (or parcel is outside City of Hercules).';
-        return;
-      }
+      if(!attrs){ status.className='alert no'; status.textContent='No parcel found for that APN (or parcel is outside City of Hercules).'; return; }
 
       if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
       if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
 
-      const situs = attrs.SITUSADDRESS ? `
-Address: ${attrs.SITUSADDRESS}` : '';
-      status.className='alert ok';
-      status.textContent = `Found APN ${attrs.APN || apn}.${situs}`;
-
+      const situs = attrs.SITUSADDRESS ? `\nAddress: ${attrs.SITUSADDRESS}` : '';
+      if (attrs.SITUSADDRESS && !attrs.SITUSADDRESS.toUpperCase().includes('HERCULES')) {
+        status.className = 'alert warn';
+        status.textContent = 'Parcel found, but appears outside City of Hercules. ' + `Found APN ${attrs.APN || apn}.` + situs;
+      } else {
+        status.className='alert ok';
+        status.textContent = `Found APN ${attrs.APN || apn}.` + situs;
+      }
+      window.__lookup = attrs;
       calc();
-    }catch(err){
-      status.className='alert no';
-      status.textContent='Lookup failed. If this persists, your browser may be blocked by CORS. Use the City network or a proxy endpoint.';
-      console.error(err);
-    }
+    }catch(err){ status.className='alert no'; status.textContent='Lookup failed. If this persists, your browser may be blocked by CORS. Use the City network or a proxy endpoint.'; console.error(err); }
   }
 
-  // Address search via CCMAP attribute query (no geocoder). Uses LIKE match on SITUSADDRESS and returns top candidates.
+  // ---------- Address search via CCMAP attribute query (no geocoder)
   async function lookupAddress(){
     const addr = $('addr').value.trim();
     const status = $('apnStatus');
     const choices = $('addrChoices');
-    choices.style.display='none';
-    choices.innerHTML='';
-    if(!addr){
-      status.style.display='block';
-      status.className='alert warn';
-      status.textContent='Enter part of a site address (e.g., street number and name).';
-      return;
-    }
-    status.style.display='block';
-    status.className='alert warn';
-    status.textContent='Searching addresses…';
+    choices.style.display='none'; choices.innerHTML='';
+    if(!addr){ status.style.display='block'; status.className='alert warn'; status.textContent='Enter part of a site address (e.g., number and street name).'; return; }
+    status.style.display='block'; status.className='alert warn'; status.textContent='Searching addresses…';
 
     try{
       const like = `%${addr.toUpperCase().replaceAll("'","''")}%`;
       const where = `UPPER(SITUSADDRESS) LIKE '${like}'`;
-      const params = new URLSearchParams({
-        where,
-        outFields: 'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT',
-        returnGeometry: 'false',
-        orderByFields: 'SITUSADDRESS',
-        resultRecordCount: '25',
-        f: 'json'
-      });
+      const params = new URLSearchParams({ where, outFields:'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT', returnGeometry:'false', orderByFields:'SITUSADDRESS', resultRecordCount:'25', f:'json' });
       const url = PROXY_URL ? `${PROXY_URL}?${params.toString()}` : `${FEATURE_URL}?${params.toString()}`;
       const res = await fetch(url);
       if(!res.ok) throw new Error('Network error or CORS blocked');
       const data = await res.json();
-      const feats = (data.features||[]).map(f=>f.attributes).filter(Boolean);
-      if(!feats.length){
-        status.className='alert no';
-        status.textContent='No matches. Try a simpler address (e.g., number + street name).';
-        return;
-      }
-      // Build choices
+      let feats = (data.features||[]).map(f=>f.attributes).filter(Boolean);
+      // Hercules-only filter (simplifies public UX). Remove this filter if you want countywide results.
+      feats = feats.filter(a => (a.SITUSADDRESS||'').toUpperCase().includes('HERCULES'));
+
+      if(!feats.length){ status.className='alert no'; status.textContent='No matches. Try a simpler address (e.g., number + street name).'; return; }
+
       feats.slice(0,25).forEach(a=>{
         const opt = document.createElement('option');
         opt.value = JSON.stringify(a);
@@ -407,63 +355,20 @@ Address: ${attrs.SITUSADDRESS}` : '';
         choices.appendChild(opt);
       });
       choices.style.display='inline-block';
-      status.className='alert ok';
-      status.textContent=`Select an address from the list (${feats.length} found).`;
-    }catch(err){
-      status.className='alert no';
-      status.textContent='Address search failed. If this persists, your browser may be blocked by CORS. Use a proxy endpoint.';
-      console.error(err);
-    }
+      status.className='alert ok'; status.textContent=`Select an address from the list (${feats.length} found).`;
+    }catch(err){ status.className='alert no'; status.textContent='Address search failed. If this persists, your browser may be blocked by CORS. Use a proxy endpoint.'; console.error(err); }
   }
 
   function pickAddress(){
     const status = $('apnStatus');
-    const selected = $('addrChoices').value;
-    if(!selected) return;
+    const selected = $('addrChoices').value; if(!selected) return;
     const attrs = JSON.parse(selected);
     if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
     if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
     $('apn').value = attrs.APN || '';
-    status.className='alert ok';
-    status.textContent = `Loaded ${attrs.SITUSADDRESS || 'selected address'} (APN ${attrs.APN || '—'}).`;
+    status.className='alert ok'; status.textContent = `Loaded ${attrs.SITUSADDRESS || 'selected address'} (APN ${attrs.APN || '—'}).`;
+    window.__lookup = attrs;
     calc();
-  }
-    status.style.display='block';
-    status.className='alert warn';
-    status.textContent='Looking up parcel…';
-
-    try{
-      const where = `APN='${apn.replaceAll("'","''")}'`;
-      const params = new URLSearchParams({
-        where,
-        outFields: 'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT',
-        returnGeometry: 'false',
-        f: 'json'
-      });
-      const res = await fetch(`${FEATURE_URL}?${params.toString()}`);
-      if(!res.ok) throw new Error('Network error or CORS blocked');
-      const data = await res.json();
-      const attrs = data.features && data.features[0] && data.features[0].attributes;
-      if(!attrs){
-        status.className='alert no';
-        status.textContent='No parcel found for that APN (or parcel is outside City of Hercules).';
-        return;
-      }
-
-      if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
-      if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
-
-      const situs = attrs.SITUSADDRESS ? `
-Address: ${attrs.SITUSADDRESS}` : '';
-      status.className='alert ok';
-      status.textContent = `Found APN ${attrs.APN || apn}.${situs}`;
-
-      calc();
-    }catch(err){
-      status.className='alert no';
-      status.textContent='Lookup failed. If this persists, your browser may be blocked by CORS. Use the City network or a proxy endpoint.';
-      console.error(err);
-    }
   }
 
   $('lookupAPN').addEventListener('click', lookupAPN);
@@ -474,11 +379,7 @@ Address: ${attrs.SITUSADDRESS}` : '';
 
   // Auto-calc on input for instant feedback
   document.querySelectorAll('input, select').forEach(el=>{
-    el.addEventListener('input', ()=>{
-      // Debounce a bit
-      clearTimeout(window.__debounce);
-      window.__debounce = setTimeout(calc, 120);
-    });
+    el.addEventListener('input', ()=>{ clearTimeout(window.__debounce); window.__debounce = setTimeout(calc, 120); });
   });
 </script>
 </body>
