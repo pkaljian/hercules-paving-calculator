@@ -51,11 +51,25 @@
     <div class="grid">
       <!-- 0) Parcel Lookup Panel -->
       <div class="panel">
-        <h2>0) Parcel Lookup (APN)</h2>
+        <h2>0) Parcel Lookup (APN / Address)</h2>
         <div class="row">
           <label for="apn">Assessor's Parcel Number (APN)</label>
           <input id="apn" type="text" placeholder="e.g., 404-123-015" />
         </div>
+        <div class="btns">
+          <button id="lookupAPN">Lookup by APN</button>
+        </div>
+        <div class="hr"></div>
+        <div class="row">
+          <label for="addr">Street Address (optional)</label>
+          <input id="addr" type="text" placeholder="e.g., 123 Palm Ave" />
+        </div>
+        <div class="btns">
+          <button id="lookupADDR">Search by Address (CCMAP)</button>
+          <select id="addrChoices" style="display:none"></select>
+        </div>
+        <div id="apnStatus" class="alert warn" style="display:none"></div>
+        <p class="tiny">Auto-fills Lot Area and Building Area (Sq. Ft.) from Contra Costa County Assessor (CCMAP). Verify values before submitting.</p>
         <div class="btns">
           <button id="lookupAPN">Lookup by APN</button>
         </div>
@@ -154,6 +168,8 @@
   // ArcGIS Feature Service for Contra Costa County Assessor Parcels (CCMAP)
   // If CORS blocks direct calls from your domain, route requests through a small proxy endpoint.
   const FEATURE_URL = 'https://gis.ccmap.us/arcgis/rest/services/CCMAP/AssessorParcels/MapServer/0/query';
+  // Optional: set this to your deployed proxy (Cloudflare Worker) to avoid CORS, e.g., '/api/parcel'
+  const PROXY_URL = ''; // leave blank to call FEATURE_URL directly
   const fmt = (n)=> isFinite(n)? new Intl.NumberFormat().format(n): '—';
   const pct = (n)=> isFinite(n)? (n*100).toFixed(1)+'%':'—';
   const badge = (ok, warnText='Complies', failText='Does not comply')=>{
@@ -318,6 +334,112 @@
         returnGeometry: 'false',
         f: 'json'
       });
+      const url = PROXY_URL ? `${PROXY_URL}?${params.toString()}` : `${FEATURE_URL}?${params.toString()}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('Network error or CORS blocked');
+      const data = await res.json();
+      const attrs = data.features && data.features[0] && data.features[0].attributes;
+      if(!attrs){
+        status.className='alert no';
+        status.textContent='No parcel found for that APN (or parcel is outside City of Hercules).';
+        return;
+      }
+
+      if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
+      if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
+
+      const situs = attrs.SITUSADDRESS ? `
+Address: ${attrs.SITUSADDRESS}` : '';
+      status.className='alert ok';
+      status.textContent = `Found APN ${attrs.APN || apn}.${situs}`;
+
+      calc();
+    }catch(err){
+      status.className='alert no';
+      status.textContent='Lookup failed. If this persists, your browser may be blocked by CORS. Use the City network or a proxy endpoint.';
+      console.error(err);
+    }
+  }
+
+  // Address search via CCMAP attribute query (no geocoder). Uses LIKE match on SITUSADDRESS and returns top candidates.
+  async function lookupAddress(){
+    const addr = $('addr').value.trim();
+    const status = $('apnStatus');
+    const choices = $('addrChoices');
+    choices.style.display='none';
+    choices.innerHTML='';
+    if(!addr){
+      status.style.display='block';
+      status.className='alert warn';
+      status.textContent='Enter part of a site address (e.g., street number and name).';
+      return;
+    }
+    status.style.display='block';
+    status.className='alert warn';
+    status.textContent='Searching addresses…';
+
+    try{
+      const like = `%${addr.toUpperCase().replaceAll("'","''")}%`;
+      const where = `UPPER(SITUSADDRESS) LIKE '${like}'`;
+      const params = new URLSearchParams({
+        where,
+        outFields: 'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT',
+        returnGeometry: 'false',
+        orderByFields: 'SITUSADDRESS',
+        resultRecordCount: '25',
+        f: 'json'
+      });
+      const url = PROXY_URL ? `${PROXY_URL}?${params.toString()}` : `${FEATURE_URL}?${params.toString()}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('Network error or CORS blocked');
+      const data = await res.json();
+      const feats = (data.features||[]).map(f=>f.attributes).filter(Boolean);
+      if(!feats.length){
+        status.className='alert no';
+        status.textContent='No matches. Try a simpler address (e.g., number + street name).';
+        return;
+      }
+      // Build choices
+      feats.slice(0,25).forEach(a=>{
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify(a);
+        opt.textContent = `${a.SITUSADDRESS || 'Unknown'} — APN ${a.APN}`;
+        choices.appendChild(opt);
+      });
+      choices.style.display='inline-block';
+      status.className='alert ok';
+      status.textContent=`Select an address from the list (${feats.length} found).`;
+    }catch(err){
+      status.className='alert no';
+      status.textContent='Address search failed. If this persists, your browser may be blocked by CORS. Use a proxy endpoint.';
+      console.error(err);
+    }
+  }
+
+  function pickAddress(){
+    const status = $('apnStatus');
+    const selected = $('addrChoices').value;
+    if(!selected) return;
+    const attrs = JSON.parse(selected);
+    if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
+    if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
+    $('apn').value = attrs.APN || '';
+    status.className='alert ok';
+    status.textContent = `Loaded ${attrs.SITUSADDRESS || 'selected address'} (APN ${attrs.APN || '—'}).`;
+    calc();
+  }
+    status.style.display='block';
+    status.className='alert warn';
+    status.textContent='Looking up parcel…';
+
+    try{
+      const where = `APN='${apn.replaceAll("'","''")}'`;
+      const params = new URLSearchParams({
+        where,
+        outFields: 'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT',
+        returnGeometry: 'false',
+        f: 'json'
+      });
       const res = await fetch(`${FEATURE_URL}?${params.toString()}`);
       if(!res.ok) throw new Error('Network error or CORS blocked');
       const data = await res.json();
@@ -331,7 +453,8 @@
       if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
       if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
 
-      const situs = attrs.SITUSADDRESS ? `\nAddress: ${attrs.SITUSADDRESS}` : '';
+      const situs = attrs.SITUSADDRESS ? `
+Address: ${attrs.SITUSADDRESS}` : '';
       status.className='alert ok';
       status.textContent = `Found APN ${attrs.APN || apn}.${situs}`;
 
@@ -344,6 +467,8 @@
   }
 
   $('lookupAPN').addEventListener('click', lookupAPN);
+  $('lookupADDR').addEventListener('click', lookupAddress);
+  $('addrChoices').addEventListener('change', pickAddress);
   $('reset').addEventListener('click', ()=>{ document.querySelectorAll('input').forEach(i=> i.value=''); $('zone').value='RS-L'; $('permit120').style.display='none'; $('areaCheck').style.display='none'; document.querySelectorAll('#results b').forEach(b=> b.textContent='—'); document.querySelectorAll('#results .badge').forEach(s=>{s.className='badge'; s.textContent='—'}); $('imp_note').textContent=''; $('permitLine').textContent=''; });
   $('print').addEventListener('click', ()=> window.print());
 
@@ -357,5 +482,43 @@
   });
 </script>
 </body>
+<!-- ==========================================
+Cloudflare Worker proxy (paste into /src/index.js or similar and deploy)
+==============================================
+This proxy simply forwards query parameters to the CCMAP Feature Service and returns JSON with CORS enabled.
+Usage in app: set PROXY_URL = '/api/parcel' and deploy the Worker with a route for '/api/parcel*'.
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    // Base CCMAP layer query endpoint
+    const target = new URL('https://gis.ccmap.us/arcgis/rest/services/CCMAP/AssessorParcels/MapServer/0/query');
+
+    // Pass through allowed params only (basic allowlist)
+    const allow = new Set(['where','outFields','returnGeometry','orderByFields','resultRecordCount','f']);
+    for (const [k,v] of url.searchParams.entries()) {
+      if (allow.has(k)) target.searchParams.set(k, v);
+    }
+    if (!target.searchParams.get('f')) target.searchParams.set('f','json');
+    if (!target.searchParams.get('returnGeometry')) target.searchParams.set('returnGeometry','false');
+
+    const upstream = await fetch(target.toString(), { headers: { 'Accept':'application/json' } });
+    const body = await upstream.text();
+
+    return new Response(body, {
+      status: upstream.status,
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        'access-control-allow-origin': '*',
+        'access-control-allow-methods': 'GET, OPTIONS',
+        'access-control-allow-headers': 'Content-Type'
+      }
+    });
+  }
+}
+
+// Optional: add an OPTIONS handler if needed by your platform
+
+-->
 </html>
 
