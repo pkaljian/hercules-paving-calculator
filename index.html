@@ -162,71 +162,6 @@
   const FEATURE_URL = 'https://gis.ccmap.us/arcgis/rest/services/CCMAP/AssessorParcels/MapServer/0/query';
   // Use proxy by default to avoid CORS (Cloudflare Worker route such as '/api/parcel')
   const PROXY_URL = '/api/parcel';
-  // ---- Fuzzy address helpers ----
-function normAddr(str){
-  return (str||'')
-    .toUpperCase()
-    .replace(/[^A-Z0-9 ]/g,' ')   // drop punctuation
-    .replace(/\s+/g,' ')          // collapse spaces
-    .trim();
-}
-
-// Common street-suffix synonyms
-const SUFFIX_MAP = {
-  ST:   ['ST','ST.','STREET'],
-  RD:   ['RD','RD.','ROAD'],
-  AVE:  ['AV','AVE','AVE.','AVENUE'],
-  BLVD: ['BLVD','BLVD.','BOULEVARD'],
-  CT:   ['CT','CT.','COURT'],
-  DR:   ['DR','DR.','DRIVE'],
-  LN:   ['LN','LN.','LANE'],
-  PL:   ['PL','PL.','PLACE'],
-  TER:  ['TER','TER.','TERRACE'],
-  WAY:  ['WAY'],
-  CIR:  ['CIR','CIR.','CIRCLE'],
-  HWY:  ['HWY','HWY.','HIGHWAY'],
-  PKWY: ['PKWY','PKWY.','PARKWAY'],
-  TRL:  ['TR','TR.','TRL','TRL.','TRAIL']
-};
-
-// Build a WHERE clause that ANDs all base tokens and ORs suffix variants
-function buildFuzzyWhere(addr){
-  const up = normAddr(addr);
-  if(!up) return "1=0"; // nothing to search
-
-  const parts = up.split(' ');
-  let base = parts.slice();
-  let suffixVariants = null;
-
-  // If the last token looks like a suffix, swap it for its variants
-  const last = parts[parts.length - 1];
-  for (const variants of Object.values(SUFFIX_MAP)){
-    if (variants.includes(last)) {
-      suffixVariants = variants;
-      base = parts.slice(0, -1);
-      break;
-    }
-  }
-
-  const clauses = [];
-
-  // Each base token must appear somewhere
-  for (const t of base){
-    if (!t) continue;
-    clauses.push(`UPPER(SITUSADDRESS) LIKE '%${t.replaceAll("'","''")}%'`);
-  }
-
-  // Suffix variants (if detected) — any of them is fine
-  if (suffixVariants){
-    const ors = suffixVariants
-      .map(s => `UPPER(SITUSADDRESS) LIKE '% ${s.replaceAll("'","''")}%'`)
-      .join(' OR ');
-    clauses.push(`(${ors})`);
-  }
-
-  return clauses.length ? clauses.join(' AND ') : "1=0";
-}
-
 
   const fmt = (n)=> isFinite(n)? new Intl.NumberFormat().format(n): '—';
   const pct = (n)=> isFinite(n)? (n*100).toFixed(1)+'%':'—';
@@ -377,7 +312,8 @@ function buildFuzzyWhere(addr){
       if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
       if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
 
-      const situs = attrs.SITUSADDRESS ? `\nAddress: ${attrs.SITUSADDRESS}` : '';
+      const situs = attrs.SITUSADDRESS ? `
+Address: ${attrs.SITUSADDRESS}` : '';
       if (attrs.SITUSADDRESS && !attrs.SITUSADDRESS.toUpperCase().includes('HERCULES')) {
         status.className = 'alert warn';
         status.textContent = 'Parcel found, but appears outside City of Hercules. ' + `Found APN ${attrs.APN || apn}.` + situs;
@@ -487,4 +423,5 @@ export default {
 
 -->
 </html>
+
 
