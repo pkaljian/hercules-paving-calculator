@@ -10,11 +10,11 @@
     a{color:var(--accent);} .wrap{max-width:900px;margin:0 auto;padding:28px}
     h1{font-size:1.6rem;margin:0 0 16px} h2{font-size:1.1rem;margin:24px 0 8px;color:#cfd6fb}
     .panel{background:var(--panel);border:1px solid #1c2344;border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.25);margin-bottom:14px}
-    .row{display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:end;margin:8px 0}
-    .row.two{grid-template-columns:1fr 1fr}
-    label{font-size:.9rem;color:#c7ccef}
-    input[type="number"],select{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
-    input[type="number"]::placeholder{color:#8590c7}
+    /* Standard label → input layout everywhere */
+    .row{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:center;margin:10px 0}
+    label{font-size:.95rem;color:#d7dbff}
+    input[type="number"],select,input[type="text"]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #2a3466;background:#0c1330;color:var(--text)}
+    input::placeholder{color:#8590c7}
     .tiny{font-size:.85rem;color:var(--muted)}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600}
     .ok{background:rgba(34,199,134,.12);color:#b2f2d6;border:1px solid rgba(34,199,134,.35)}
@@ -41,53 +41,55 @@
   <div class="wrap">
     <h1>Residential Yard Paving Compliance Calculator <span class="tiny">(Hercules Municipal Code §13-30.750)</span></h1>
 
-    <!-- Simple, input-only workflow -->
+    <!-- Info / links panel -->
+    <div class="panel">
+      <h2>Where to find your official lot & building sizes</h2>
+      <p class="tiny">Don’t have them handy? You can look up recorded information through the County’s ParcelQuest site: <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>. Then enter the numbers below.</p>
+    </div>
+
+    <!-- 1) Lot & Basics -->
     <div class="panel">
       <h2>1) Lot & Basics</h2>
-      <div class="row two">
-        <div>
-          <label for="lot">Lot area (square feet)</label>
-          <input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000" />
-        </div>
-        <div>
-          <label for="zone">Zoning</label>
-          <select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select>
-        </div>
+      <div class="row">
+        <label for="lot">Lot area (square feet)</label>
+        <input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000" />
+      </div>
+      <div class="row">
+        <label for="zone">Zoning</label>
+        <select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select>
       </div>
       <div class="row">
         <label for="bldg">Building footprint (impervious; square feet)</label>
         <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800" />
       </div>
-      <p class="tiny">Tip: Lot area is the total parcel area in square feet. Building footprint is the plan-view area of all roofed structures.</p>
+      <p class="tiny">Lot area = total parcel area. Building footprint = plan‑view area of all roofed structures.</p>
     </div>
 
+    <!-- 2) Yard Areas -->
     <div class="panel">
       <h2>2) Yard Areas</h2>
-      <div class="row two">
-        <div>
-          <label for="frontArea">Front yard area (sf)</label>
-          <input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800" />
-        </div>
-        <div>
-          <label for="rearSideArea">Rear + side yard area (sf)</label>
-          <input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600" />
-        </div>
+      <div class="row">
+        <label for="frontArea">Front yard area (sf)</label>
+        <input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800" />
       </div>
-      <p class="tiny">Front yard = area in front of the primary structure. Rear + side yard = the rest of the yard area behind the front of the home.</p>
+      <div class="row">
+        <label for="rearSideArea">Rear + side yard area (sf)</label>
+        <input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600" />
+      </div>
+      <p class="tiny">Front yard = area in front of the primary structure. Rear + side yard = the rest of the yard behind the front of the home.</p>
       <div id="areaCheck" class="alert warn" style="display:none"></div>
     </div>
 
+    <!-- 3) Existing Paving -->
     <div class="panel">
       <h2>3) Existing Paving (before project)</h2>
-      <div class="row two">
-        <div>
-          <label for="frontDrive_exist">Front driveway paving (sf)</label>
-          <input id="frontDrive_exist" type="number" min="0" step="1" />
-        </div>
-        <div>
-          <label for="frontOther_exist">Front walkways & other hardscape (sf)</label>
-          <input id="frontOther_exist" type="number" min="0" step="1" />
-        </div>
+      <div class="row">
+        <label for="frontDrive_exist">Front driveway paving (sf)</label>
+        <input id="frontDrive_exist" type="number" min="0" step="1" />
+      </div>
+      <div class="row">
+        <label for="frontOther_exist">Front walkways & other hardscape (sf)</label>
+        <input id="frontOther_exist" type="number" min="0" step="1" />
       </div>
       <div class="row">
         <label for="rearPave_exist">Rear + side paving (all hardscape; sf)</label>
@@ -97,30 +99,27 @@
         <label for="imperv_exist">Impermeable paving (subset of above; sf)</label>
         <input id="imperv_exist" type="number" min="0" step="1" placeholder="exclude permeable pavers" />
       </div>
-      <p class="tiny">Impermeable = concrete, asphalt, compacted gravel, etc. Permeable pavers do not count as impervious for the runoff calc, but do count as hardscape for the front/rear yard rules.</p>
+      <p class="tiny">Impermeable = concrete, asphalt, compacted gravel, etc. Permeable pavers still count toward yard hardscape limits but not toward lot‑wide impervious for stormwater.</p>
     </div>
 
+    <!-- 4) Proposed Changes -->
     <div class="panel">
       <h2>4) Proposed Changes (use negative numbers for removals)</h2>
-      <div class="row two">
-        <div>
-          <label for="frontDrive_delta">Δ Front driveway paving (sf)</label>
-          <input id="frontDrive_delta" type="number" step="1" placeholder="e.g., 120 or -120" />
-        </div>
-        <div>
-          <label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label>
-          <input id="frontOther_delta" type="number" step="1" />
-        </div>
+      <div class="row">
+        <label for="frontDrive_delta">Δ Front driveway paving (sf)</label>
+        <input id="frontDrive_delta" type="number" step="1" placeholder="e.g., 120 or -120" />
       </div>
-      <div class="row two">
-        <div>
-          <label for="rearPave_delta">Δ Rear + side paving (sf)</label>
-          <input id="rearPave_delta" type="number" step="1" />
-        </div>
-        <div>
-          <label for="imperv_delta">Δ Impermeable paving (sf)</label>
-          <input id="imperv_delta" type="number" step="1" placeholder="+ add / − remove" />
-        </div>
+      <div class="row">
+        <label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label>
+        <input id="frontOther_delta" type="number" step="1" />
+      </div>
+      <div class="row">
+        <label for="rearPave_delta">Δ Rear + side paving (sf)</label>
+        <input id="rearPave_delta" type="number" step="1" />
+      </div>
+      <div class="row">
+        <label for="imperv_delta">Δ Impermeable paving (sf)</label>
+        <input id="imperv_delta" type="number" step="1" placeholder="+ add / − remove" />
       </div>
       <div class="btns center">
         <button id="calc">Calculate</button>
@@ -131,6 +130,7 @@
       <div id="permit120" class="alert warn" style="display:none"></div>
     </div>
 
+    <!-- Results -->
     <div class="panel" id="results" aria-live="polite">
       <h2>Results</h2>
       <div class="cards">
@@ -205,7 +205,7 @@
     const rs0 = readNum('rearPave_exist');
     const imp0 = readNum('imperv_exist');
 
-    // Deltas (+ add / − remove)
+    // Deltas
     const fdD = readNum('frontDrive_delta');
     const foD = readNum('frontOther_delta');
     const rsD = readNum('rearPave_delta');
@@ -216,7 +216,7 @@
     const fo = Math.max(0, fo0 + foD);
     const rs = Math.max(0, rs0 + rsD);
 
-    // Landscaped areas (excludes any hard surface)
+    // Landscaped areas (excludes hard surfaces)
     const frontLand = Math.max(0, frontArea - (fd + fo));
     const rearLand  = Math.max(0, rearSideArea - rs);
 
@@ -242,7 +242,7 @@
     // Permit trigger (only count additions, not removals)
     const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
 
-    // Area sanity check
+    // Area cross-check
     const sumKnown = bldg + frontArea + rearSideArea;
     const areaMsg = (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03)
       ? `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`
@@ -308,5 +308,4 @@
 </script>
 </body>
 </html>
-
 
