@@ -46,26 +46,22 @@
       <!-- 0) Parcel Lookup Panel -->
       <div class="panel">
         <h2>0) Parcel Lookup (APN / Address)</h2>
-        <div id="proxyStatus" class="alert warn" style="display:none"></div>
-
         <div class="row">
           <label for="apn">Assessor's Parcel Number (APN)</label>
           <input id="apn" type="text" placeholder="e.g., 404-123-015" />
         </div>
         <div class="btns"><button id="lookupAPN">Lookup by APN</button></div>
-
         <div class="hr"></div>
         <div class="row">
           <label for="addr">Street Address (optional)</label>
-          <input id="addr" type="text" placeholder="e.g., 123 Palm Ave" />
+          <input id="addr" type="text" placeholder="e.g., 123 Palm" />
         </div>
         <div class="btns">
-          <button id="lookupADDR">Search by Address (CCMAP)</button>
+          <button id="lookupADDR">Search by Address</button>
           <select id="addrChoices" style="display:none"></select>
         </div>
-
         <div id="apnStatus" class="alert warn" style="display:none"></div>
-        <p class="tiny">Auto-fills Lot Area and Building Area (Sq. Ft.) from Contra Costa County Assessor (CCMAP). Verify values before submitting.</p>
+        <p class="tiny">Looks up APN and composes address from <code>S_STR_NBR</code> + <code>S_STR_NM</code>. Lot/Building areas remain manual unless present in your layer.</p>
       </div>
 
       <div class="panel">
@@ -157,66 +153,58 @@
 
 <script>
   const $ = (id)=>document.getElementById(id);
-  // ArcGIS Feature Service for Contra Costa County Assessor Parcels (CCMAP)
-  const FEATURE_URL = 'https://gis.ccmap.us/arcgis/rest/services/CCMAP/AssessorParcels/MapServer/0/query';
-  // Use proxy by default to avoid CORS. If on a static host, set this to your full Worker URL.
-  let PROXY_URL = '/api/parcel';
 
-  // ---- Fuzzy address helpers ----
-  function normAddr(str){
-    return (str||'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
-  }
-  const SUFFIX_MAP = {
-    ST:['ST','ST.','STREET'], RD:['RD','RD.','ROAD'], AVE:['AV','AVE','AVE.','AVENUE'], BLVD:['BLVD','BLVD.','BOULEVARD'],
-    CT:['CT','CT.','COURT'], DR:['DR','DR.','DRIVE'], LN:['LN','LN.','LANE'], PL:['PL','PL.','PLACE'], TER:['TER','TER.','TERRACE'],
-    WAY:['WAY'], CIR:['CIR','CIR.','CIRCLE'], HWY:['HWY','HWY.','HIGHWAY'], PKWY:['PKWY','PKWY.','PARKWAY'], TRL:['TR','TR.','TRL','TRL.','TRAIL']
-  };
-  function buildFuzzyWhere(addr){
-    const up = normAddr(addr); if(!up) return '1=0';
-    const parts = up.split(' ');
-    let base = parts.slice(); let suffixVariants = null;
-    const last = parts[parts.length-1];
-    for (const variants of Object.values(SUFFIX_MAP)){
-      if (variants.includes(last)) { suffixVariants = variants; base = parts.slice(0,-1); break; }
+  // ====== AGOL Feature Layer (by Item ID) ======
+  const ARC_ITEM_ID = '5d45f47135e04a328052d0876cc0a7e2';
+  let FEATURE_QUERY_URL = null; // resolved on demand
+
+  // Resolve FeatureServer layer URL from the AGOL item id (anonymous access)
+  async function resolveLayerUrl(){
+    // 1) Item JSON has the service URL for hosted feature layers
+    const item = await fetch(`https://www.arcgis.com/sharing/rest/content/items/${ARC_ITEM_ID}?f=json`).then(r=>r.json());
+    if (!item || !item.url) throw new Error('AGOL item url not found');
+    // 2) Discover layers; pick the one that has APN (fallback to first)
+    const svc = await fetch(`${item.url}?f=json`).then(r=>r.json());
+    if (!svc || !Array.isArray(svc.layers) || !svc.layers.length) throw new Error('No layers in service');
+    let targetLayer = svc.layers[0];
+    for (const lyr of svc.layers){
+      const hasAPN = Array.isArray(lyr.fields) && lyr.fields.some(f=> f.name.toUpperCase()==='APN');
+      if (hasAPN){ targetLayer = lyr; break; }
     }
-    const clauses = [];
-    for (const t of base){ if (t) clauses.push(`UPPER(SITUSADDRESS) LIKE '%${t.replaceAll("'","''")}%'`); }
-    if (suffixVariants){
-      const ors = suffixVariants.map(s=>`UPPER(SITUSADDRESS) LIKE '% ${s.replaceAll("'","''")}%'`).join(' OR ');
-      clauses.push(`(${ors})`);
-    }
-    return clauses.length? clauses.join(' AND ') : '1=0';
+    FEATURE_QUERY_URL = `${item.url.replace(/\\/+$/,'')}/${targetLayer.id}/query`;
   }
 
-  // Unified fetch: try proxy first; fallback to direct service (works on City network)
+  // Ask for all fields so we can pick off optional lot/building area names if present
+  const OUTFIELDS = '*';
+
+  // Query helper (AGOL CORS-friendly; no proxy)
   async function parcelQuery(params){
-    const qs = params.toString();
-    if (PROXY_URL){
-      try{
-        const r = await fetch(`${PROXY_URL}?${qs}`, {mode:'cors'});
-        if (r.ok) return await r.json();
-      }catch(e){ /* fall through */ }
-    }
-    const r2 = await fetch(`${FEATURE_URL}?${qs}`);
-    if (!r2.ok) throw new Error('Upstream error');
-    return await r2.json();
+    if (!FEATURE_QUERY_URL) await resolveLayerUrl();
+    const url = `${FEATURE_QUERY_URL}?${params.toString()}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Parcel query failed');
+    return await res.json();
   }
 
-  // Proxy health check
-  async function checkProxy(){
-    const status = $('proxyStatus');
-    try{
-      const testParams = new URLSearchParams({ where:'1=0', outFields:'APN', returnGeometry:'false', f:'json' });
-      const r = await fetch(`${PROXY_URL}?${testParams.toString()}`, {mode:'cors'});
-      if (!r.ok) throw new Error('bad status');
-      status.style.display='none';
-    }catch(e){
-      status.style.display='block';
-      status.className='alert warn';
-      status.textContent = `Note: Parcel proxy not reachable at "${PROXY_URL}". If hosted on a static site, set PROXY_URL to your Cloudflare Worker URL (e.g., https://your-worker.workers.dev/api/parcel).`;
-    }
+  // Optional: extract lot/building areas if your layer has them (harmless if not)
+  function extractAreas(attrs){
+    const lotKeys = ['LOTSQFT','LOT_SQFT','LOTAREA','LOT_AREA','LOT_SQ_FEET'];
+    const bldgKeys = ['BLDGSQFT','BLDG_SQFT','BLDGAREA','BUILDING_SQFT','BLDG_SQ_FEET'];
+    const v = (x)=> (typeof x==='number' ? x : parseFloat(x));
+    const lot = lotKeys.map(k=> v(attrs[k])).find(n=> Number.isFinite(n));
+    const bldg = bldgKeys.map(k=> v(attrs[k])).find(n=> Number.isFinite(n));
+    return { lot: lot||0, bldg: bldg||0 };
   }
 
+  // Compose a label from S_STR_NBR + S_STR_NM
+  function composeAddress(a){
+    const num = (a.S_STR_NBR||'').toString().trim();
+    const nm  = (a.S_STR_NM||'').toString().trim();
+    const has = (s)=> s && s !== 'null' && s !== 'undefined';
+    return [has(num)?num:null, has(nm)?nm:null].filter(Boolean).join(' ');
+  }
+
+  // ------- Calculator helpers -------
   const fmt = (n)=> isFinite(n)? new Intl.NumberFormat().format(n): '—';
   const pct = (n)=> isFinite(n)? (n*100).toFixed(1)+'%':'—';
   const badge = (ok, warnText='Complies', failText='Does not comply')=>{
@@ -229,19 +217,30 @@
 
   function calc(){
     // Basics
-    const lot = readNum('lot'); const zone = $('zone').value; const bldg = readNum('bldg');
-    const frontArea = readNum('frontArea'); const rearSideArea = readNum('rearSideArea');
+    const lot = readNum('lot');
+    const zone = $('zone').value;
+    const bldg = readNum('bldg');
+    const frontArea = readNum('frontArea');
+    const rearSideArea = readNum('rearSideArea');
 
-    // Existing & deltas
-    const fd0 = readNum('frontDrive_exist'); const fo0 = readNum('frontOther_exist'); const rs0 = readNum('rearPave_exist'); const imp0 = readNum('imperv_exist');
-    const fdD = readNum('frontDrive_delta'); const foD = readNum('frontOther_delta'); const rsD = readNum('rearPave_delta'); const impD = readNum('imperv_delta');
+    // Existing
+    const fd0 = readNum('frontDrive_exist');
+    const fo0 = readNum('frontOther_exist');
+    const rs0 = readNum('rearPave_exist');
+    const imp0 = readNum('imperv_exist');
+
+    // Deltas
+    const fdD = readNum('frontDrive_delta');
+    const foD = readNum('frontOther_delta');
+    const rsD = readNum('rearPave_delta');
+    const impD = readNum('imperv_delta');
 
     // Totals after
     const fd = Math.max(0, fd0 + fdD);
     const fo = Math.max(0, fo0 + foD);
     const rs = Math.max(0, rs0 + rsD);
 
-    // Landscape
+    // Landscape (excludes any hard surface)
     const frontLand = Math.max(0, frontArea - (fd + fo));
     const rearLand  = Math.max(0, rearSideArea - rs);
 
@@ -253,25 +252,23 @@
     const rlPct = rearSideArea>0 ? rearLand/rearSideArea : NaN;
 
     // Compliance checks
-    const fdOK = fdPct <= 0.35 + 1e-9;
-    const foOK = foPct <= 0.25 + 1e-9;
-    const flOK = flPct >= 0.40 - 1e-9;
-    const rsOK = rsPct <= 0.60 + 1e-9;
-    const rlOK = rlPct >= 0.40 - 1e-9;
+    const fdOK = fdPct <= 0.35 + 1e-9; // Driveway ≤ 35%
+    const foOK = foPct <= 0.25 + 1e-9; // Other hardscape ≤ 25%
+    const flOK = flPct >= 0.40 - 1e-9; // Landscape ≥ 40%
+    const rsOK = rsPct <= 0.60 + 1e-9; // Rear+side paving ≤ 60%
+    const rlOK = rlPct >= 0.40 - 1e-9; // Rear+side landscape ≥ 40%
 
     // Stormwater / impervious
     const imp = Math.max(0, imp0 + impD) + bldg; // impervious paving + building
     const impPct = lot>0 ? imp/lot : NaN;
     const impOver = zone==='RS-L' ? impPct>0.47+1e-9 : false;
 
-    // Permit trigger
+    // Permit trigger (only count additions, not removals)
     const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
 
-    // Area sanity check
+    // Area sanity check (optional)
     const sumKnown = bldg + frontArea + rearSideArea;
-    const areaMsg = (lot>0 && sumKnown>0)
-      ? (Math.abs(sumKnown - lot) <= lot*0.03 ? '' : `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`)
-      : '';
+    const areaMsg = (lot>0 && sumKnown>0) ? (Math.abs(sumKnown - lot) <= lot*0.03 ? '' : `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`) : '';
 
     // Write UI
     $('fd_area').textContent = fmt(fd) + ' sf';
@@ -287,8 +284,7 @@
     $('rl_pct').textContent = pct(rlPct);
 
     const setBadge = (id, ok, warn='Complies', fail='Does not comply')=>{
-      const host = $(id); host.innerHTML = ''; host.appendChild(badge(ok, warn, fail));
-    };
+      const host = $(id); host.innerHTML = ''; host.appendChild(badge(ok, warn, fail)); };
     setBadge('fd_badge', fdOK); setBadge('fo_badge', foOK); setBadge('fl_badge', flOK); setBadge('rs_badge', rsOK); setBadge('rl_badge', rlOK);
 
     $('imp_area').textContent = fmt(imp) + ' sf';
@@ -334,76 +330,87 @@
 
   $('calc').addEventListener('click', calc);
 
-  // ---------- APN Lookup (proxy + fallback)
+  // ---------- APN Lookup (AGOL)
   async function lookupAPN(){
-    const apn = $('apn').value.trim(); const status = $('apnStatus');
+    const apn = $('apn').value.trim();
+    const status = $('apnStatus');
     if(!apn){ status.style.display='block'; status.className='alert warn'; status.textContent='Enter an APN to search (e.g., 404-123-015).'; return; }
     status.style.display='block'; status.className='alert warn'; status.textContent='Looking up parcel…';
+
     try{
       const where = `APN='${apn.replaceAll("'","''")}'`;
-      const params = new URLSearchParams({ where, outFields:'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT', returnGeometry:'false', f:'json' });
+      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry: 'false', f: 'json' });
       const data = await parcelQuery(params);
       const attrs = data.features && data.features[0] && data.features[0].attributes;
-      if(!attrs){ status.className='alert no'; status.textContent='No parcel found for that APN (or parcel is outside City of Hercules).'; return; }
-      if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT; if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
-      const situs = attrs.SITUSADDRESS ? `\nAddress: ${attrs.SITUSADDRESS}` : '';
-      if (attrs.SITUSADDRESS && !attrs.SITUSADDRESS.toUpperCase().includes('HERCULES')) {
-        status.className = 'alert warn';
-        status.textContent = 'Parcel found, but appears outside City of Hercules. ' + `Found APN ${attrs.APN || apn}.` + situs;
-      } else {
-        status.className='alert ok';
-        status.textContent = `Found APN ${attrs.APN || apn}.` + situs;
-      }
-      window.__lookup = attrs; calc();
-    }catch(err){
-      status.className='alert no';
-      status.textContent='Lookup failed. Ensure the proxy URL is correct or try on the City network.';
-      console.error(err);
-    }
+      if(!attrs){ status.className='alert no'; status.textContent='No parcel found for that APN.'; return; }
+
+      // Optional lot/building (if your layer has them)
+      const { lot, bldg } = extractAreas(attrs);
+      if (lot) $('lot').value = lot;
+      if (bldg) $('bldg').value = bldg;
+
+      const compAddr = composeAddress(attrs);
+      const pretty = compAddr ? `\nAddress: ${compAddr}` : '';
+      status.className='alert ok';
+      status.textContent = `Found APN ${attrs.APN || apn}.${pretty}`;
+      window.__lookup = attrs;
+      calc();
+    }catch(err){ status.className='alert no'; status.textContent='Lookup failed (AGOL). Check layer sharing/permissions or item id.'; console.error(err); }
   }
 
-  // ---------- Address search (fuzzy) + proxy/fallback
+  // ---------- Address search (AGOL) using S_STR_NBR + S_STR_NM
+  function buildAddressWhere(q){
+    const up = (q||'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+    if(!up) return '1=0';
+    const parts = up.split(' ');
+    const nums = parts.filter(p=> /^\d+$/.test(p));
+    const words = parts.filter(p=> !/^\d+$/.test(p));
+    const clauses = [];
+    for (const n of nums){ clauses.push(`S_STR_NBR LIKE '%${n.replaceAll("'","''")}%'`); }
+    for (const w of words){ clauses.push(`UPPER(S_STR_NM) LIKE '%${w.replaceAll("'","''")}%'`); }
+    return clauses.length? clauses.join(' AND ') : '1=0';
+  }
+
   async function lookupAddress(){
-    const addr = $('addr').value.trim(); const status = $('apnStatus'); const choices = $('addrChoices');
+    const addr = $('addr').value.trim();
+    const status = $('apnStatus');
+    const choices = $('addrChoices');
     choices.style.display='none'; choices.innerHTML='';
-    if(!addr){ status.style.display='block'; status.className='alert warn'; status.textContent='Enter part of a site address (e.g., number and street name).'; return; }
-    status.style.display='block'; status.className='alert warn'; status.textContent='Searching addresses…';
+    if(!addr){ status.style.display='block'; status.className='alert warn'; status.textContent='Enter part of a street address (e.g., "123 Palm").'; return; }
+    status.style.display='block'; status.className='alert warn'; status.textContent='Searching…';
+
     try{
-      const where = buildFuzzyWhere(addr);
-      const params = new URLSearchParams({ where, outFields:'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT', returnGeometry:'false', orderByFields:'SITUSADDRESS', resultRecordCount:'25', f:'json' });
+      const where = buildAddressWhere(addr);
+      const params = new URLSearchParams({ where, outFields: OUTFIELDS, returnGeometry:'false', orderByFields:'S_STR_NM,S_STR_NBR', resultRecordCount:'25', f:'json' });
       const data = await parcelQuery(params);
       let feats = (data.features||[]).map(f=>f.attributes).filter(Boolean);
-
-      // Hercules-only filter (public UX)
-      feats = feats.filter(a => (a.SITUSADDRESS||'').toUpperCase().includes('HERCULES'));
-
-      if(!feats.length){ status.className='alert no'; status.textContent='No matches. Try a simpler address (e.g., number + street name).'; return; }
+      if(!feats.length){ status.className='alert no'; status.textContent='No matches. Try number + street (e.g., "123 Palm").'; return; }
 
       feats.slice(0,25).forEach(a=>{
         const opt = document.createElement('option');
         opt.value = JSON.stringify(a);
-        opt.textContent = `${a.SITUSADDRESS || 'Unknown'} — APN ${a.APN}`;
+        const label = `${composeAddress(a) || '(no address)'} — APN ${a.APN || '(unknown)'}`;
+        opt.textContent = label;
         choices.appendChild(opt);
       });
       choices.style.display='inline-block';
-      status.className='alert ok';
-      status.textContent=`Select an address from the list (${feats.length} found).`;
-    }catch(err){
-      status.className='alert no';
-      status.textContent='Address search failed. Ensure the proxy URL is correct or try on the City network.';
-      console.error(err);
-    }
+      status.className='alert ok'; status.textContent=`Select an address from the list (${feats.length} found).`;
+    }catch(err){ status.className='alert no'; status.textContent='Address search failed (AGOL). Check layer sharing/permissions or item id.'; console.error(err); }
   }
 
   function pickAddress(){
     const status = $('apnStatus');
     const selected = $('addrChoices').value; if(!selected) return;
     const attrs = JSON.parse(selected);
-    if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
-    if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
+    const compAddr = composeAddress(attrs);
     $('apn').value = attrs.APN || '';
-    status.className='alert ok';
-    status.textContent = `Loaded ${attrs.SITUSADDRESS || 'selected address'} (APN ${attrs.APN || '—'}).`;
+
+    // Optional: fill lot/building if present
+    const { lot, bldg } = extractAreas(attrs);
+    if (lot) $('lot').value = lot;
+    if (bldg) $('bldg').value = bldg;
+
+    status.className='alert ok'; status.textContent = `Loaded ${compAddr || 'selected address'} (APN ${attrs.APN || '—'}).`;
     window.__lookup = attrs;
     calc();
   }
@@ -422,66 +429,13 @@
     $('permitLine').textContent='';
   });
   $('print').addEventListener('click', ()=> window.print());
-  document.addEventListener('DOMContentLoaded', checkProxy);
 
   // Auto-calc on input for instant feedback
   document.querySelectorAll('input, select').forEach(el=>{
-    el.addEventListener('input', ()=>{
-      clearTimeout(window.__debounce);
-      window.__debounce = setTimeout(calc, 120);
-    });
+    el.addEventListener('input', ()=>{ clearTimeout(window.__debounce); window.__debounce = setTimeout(calc, 120); });
   });
 </script>
 </body>
-<!-- ==========================================
-Cloudflare Worker proxy (paste into /src/index.js or similar and deploy)
-==============================================
-This proxy simply forwards query parameters to the CCMAP Feature Service and returns JSON with CORS enabled.
-Usage in app: set PROXY_URL to '/api/parcel' (same-origin) or to your full Worker URL (e.g., https://your-worker.workers.dev/api/parcel) and route '/api/parcel*' to this Worker.
-
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-
-    // CORS preflight support
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          'access-control-allow-origin': '*',
-          'access-control-allow-methods': 'GET, OPTIONS',
-          'access-control-allow-headers': 'Content-Type'
-        }
-      });
-    }
-
-    // Upstream CCMAP query
-    const target = new URL('https://gis.ccmap.us/arcgis/rest/services/CCMAP/AssessorParcels/MapServer/0/query');
-
-    // Allowlist params
-    const allow = new Set(['where','outFields','returnGeometry','orderByFields','resultRecordCount','f']);
-    for (const [k,v] of url.searchParams.entries()) {
-      if (allow.has(k)) target.searchParams.set(k, v);
-    }
-    if (!target.searchParams.get('f')) target.searchParams.set('f','json');
-    if (!target.searchParams.get('returnGeometry')) target.searchParams.set('returnGeometry','false');
-
-    const upstream = await fetch(target.toString(), { headers: { 'Accept':'application/json' } });
-    const body = await upstream.text();
-
-    return new Response(body, {
-      status: upstream.status,
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        'access-control-allow-origin': '*',
-        'access-control-allow-methods': 'GET, OPTIONS',
-        'access-control-allow-headers': 'Content-Type'
-      }
-    });
-  }
-}
-
--->
 </html>
 
 
