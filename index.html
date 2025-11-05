@@ -49,6 +49,19 @@
     <h1>Residential Yard Paving Compliance Calculator <span class="tiny">(Hercules Municipal Code §13-30.750)</span></h1>
 
     <div class="grid">
+      <!-- 0) Parcel Lookup Panel -->
+      <div class="panel">
+        <h2>0) Parcel Lookup (APN)</h2>
+        <div class="row">
+          <label for="apn">Assessor's Parcel Number (APN)</label>
+          <input id="apn" type="text" placeholder="e.g., 404-123-015" />
+        </div>
+        <div class="btns">
+          <button id="lookupAPN">Lookup by APN</button>
+        </div>
+        <div id="apnStatus" class="alert warn" style="display:none"></div>
+        <p class="tiny">Auto-fills Lot Area and Building Area (Sq. Ft.) from Contra Costa County Assessor (CCMAP). Verify values before submitting.</p>
+      </div>
       <div class="panel">
         <h2>1) Site Basics</h2>
         <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="0.01" placeholder="e.g., 6,000"/></div>
@@ -138,6 +151,9 @@
 
 <script>
   const $ = (id)=>document.getElementById(id);
+  // ArcGIS Feature Service for Contra Costa County Assessor Parcels (CCMAP)
+  // If CORS blocks direct calls from your domain, route requests through a small proxy endpoint.
+  const FEATURE_URL = 'https://gis.ccmap.us/arcgis/rest/services/CCMAP/AssessorParcels/MapServer/0/query';
   const fmt = (n)=> isFinite(n)? new Intl.NumberFormat().format(n): '—';
   const pct = (n)=> isFinite(n)? (n*100).toFixed(1)+'%':'—';
   const badge = (ok, warnText='Complies', failText='Does not comply')=>{
@@ -280,6 +296,54 @@
   }
 
   $('calc').addEventListener('click', calc);
+  // APN Lookup using the Contra Costa CCMAP Feature Service
+  async function lookupAPN(){
+    const apn = $('apn').value.trim();
+    const status = $('apnStatus');
+    if(!apn){
+      status.style.display='block';
+      status.className='alert warn';
+      status.textContent='Enter an APN to search (e.g., 404-123-015).';
+      return;
+    }
+    status.style.display='block';
+    status.className='alert warn';
+    status.textContent='Looking up parcel…';
+
+    try{
+      const where = `APN='${apn.replaceAll("'","''")}'`;
+      const params = new URLSearchParams({
+        where,
+        outFields: 'APN,SITUSADDRESS,LOTSQFT,BLDGSQFT',
+        returnGeometry: 'false',
+        f: 'json'
+      });
+      const res = await fetch(`${FEATURE_URL}?${params.toString()}`);
+      if(!res.ok) throw new Error('Network error or CORS blocked');
+      const data = await res.json();
+      const attrs = data.features && data.features[0] && data.features[0].attributes;
+      if(!attrs){
+        status.className='alert no';
+        status.textContent='No parcel found for that APN (or parcel is outside City of Hercules).';
+        return;
+      }
+
+      if (attrs.LOTSQFT) $('lot').value = attrs.LOTSQFT;
+      if (attrs.BLDGSQFT) $('bldg').value = attrs.BLDGSQFT;
+
+      const situs = attrs.SITUSADDRESS ? `\nAddress: ${attrs.SITUSADDRESS}` : '';
+      status.className='alert ok';
+      status.textContent = `Found APN ${attrs.APN || apn}.${situs}`;
+
+      calc();
+    }catch(err){
+      status.className='alert no';
+      status.textContent='Lookup failed. If this persists, your browser may be blocked by CORS. Use the City network or a proxy endpoint.';
+      console.error(err);
+    }
+  }
+
+  $('lookupAPN').addEventListener('click', lookupAPN);
   $('reset').addEventListener('click', ()=>{ document.querySelectorAll('input').forEach(i=> i.value=''); $('zone').value='RS-L'; $('permit120').style.display='none'; $('areaCheck').style.display='none'; document.querySelectorAll('#results b').forEach(b=> b.textContent='—'); document.querySelectorAll('#results .badge').forEach(s=>{s.className='badge'; s.textContent='—'}); $('imp_note').textContent=''; $('permitLine').textContent=''; });
   $('print').addEventListener('click', ()=> window.print());
 
@@ -294,3 +358,4 @@
 </script>
 </body>
 </html>
+
