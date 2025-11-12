@@ -9,17 +9,19 @@
       --bg:#f4f6f9; --panel:#ffffff; --text:#1b2a41; --muted:#64748b; --brand:#1f3f68; --brand-900:#173352; --accent:#d4a017; --line:#e5e9f2;
       --good:#198754; --bad:#d9534f; --warn:#e39b27;
     }
+    * { box-sizing: border-box; }
     html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"}
     a{color:var(--brand);text-decoration:underline;text-underline-offset:2px}
     a:hover{color:var(--brand-900)}
     .wrap{max-width:980px;margin:0 auto;padding:28px}
     h1{font-size:1.75rem;margin:0 0 16px;color:var(--brand)}
     h2{font-size:1.1rem;margin:24px 0 8px;color:var(--brand)}
-    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(31,63,104,.06);margin-bottom:14px}
-    .row{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:center;margin:10px 0}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(31,63,104,.06);margin-bottom:14px; overflow:hidden;}
+    .row{display:grid;grid-template-columns:minmax(180px,260px) 1fr;gap:14px;align-items:center;margin:10px 0}
     label{font-size:.95rem;color:var(--brand-900)}
     input[type="number"],select,input[type="text"]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--text)}
     input::placeholder{color:#8590c7}
+    .help{grid-column:2 / span 1;font-size:.85rem;color:var(--muted);margin-top:-6px}
     .tiny{font-size:.9rem;color:var(--muted)}
     .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600;border:1px solid var(--line);background:#f8fafc;color:var(--text)}
@@ -28,6 +30,7 @@
     .warn{background:rgba(227,155,39,.10);color:#7a4a08;border-color:rgba(227,155,39,.28)}
     .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
     .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 3px 14px rgba(31,63,104,.05)}
+    .kv{display:flex;justify-content:space-between;gap:10px;margin:6px 0}
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     button{cursor:pointer;background:var(--brand);border:1px solid var(--brand);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;box-shadow:0 2px 0 rgba(0,0,0,.04)}
     button:hover{background:var(--brand-900);border-color:var(--brand-900)}
@@ -37,61 +40,61 @@
     .alert.no{background:rgba(217,83,79,.08);border:1px solid rgba(217,83,79,.28);color:#842029}
     .alert.ok{background:rgba(25,135,84,.08);border:1px solid rgba(25,135,84,.28);color:#0f5132}
     .hide{display:none}
- /* --- Figure 13-30.751 styles --- */
-.figure {
-  text-align: center;
-  margin: 12px 0 18px;
-}
-.figure img {
-  max-width: 100%;
-  height: auto;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: 0 3px 14px rgba(31,63,104,.05);
-}
-.figure figcaption {
-  font-size: .85rem;
-  color: var(--muted);
-  margin-top: 6px;
-}
 
+    /* Figure styles */
+    .figure { text-align: center; margin: 12px 0 18px; }
+    .figure img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 3px 14px rgba(31,63,104,.05); }
+    .figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+
+    /* Footer link */
+    .pagefoot{ text-align:center; margin:18px 0 6px; }
   </style>
 </head>
 <body>
   <div class="wrap">
-   <h1>
-  Residential Yard Paving Compliance Calculator
-  <span class="tiny">
-    (<a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750"
-        target="_blank" rel="noopener noreferrer">
-      Hercules Municipal Code §13-30.750
-    </a>)
-  </span>
-</h1>
-    <!-- Figure 13-30.751 (embedded image) -->
-    
-<!-- Figure 13-30.751 — Residential Paving Diagram -->
-<figure class="figure" aria-describedby="fig-1330751" style="text-align:center;margin:16px 0;">
-  <img
-    src="./Screenshot%202025-11-05%20160901.png"
-    alt="Figure 13-30.751 — Limits on Paving and Hardscaping for Residential Front, Rear, and Side Yards"
-    style="max-width:100%;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,0.25);">
-  <figcaption id="fig-1330751" class="tiny" style="margin-top:6px;color:#5a5a5a;">
-    Figure 13-30.751 — Limits on Paving and Hardscaping for Residential Front, Rear, and Side Yards
-  </figcaption>
-</figure>
+    <h1>
+      Residential Yard Paving Compliance Calculator
+      <span class="tiny">
+        (<a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750"
+            target="_blank" rel="noopener noreferrer">
+          Hercules Municipal Code §13-30.750
+        </a>)
+      </span>
+    </h1>
+
+    <!-- Figure 13-30.751 — Residential Paving Diagram -->
+    <figure class="figure" aria-describedby="fig-1330751">
+      <img
+        src="./Screenshot%202025-11-05%20160901.png"
+        alt="Figure 13-30.751 — Limits on Paving and Hardscaping for Residential Front, Rear, and Side Yards">
+      <figcaption id="fig-1330751" class="tiny">
+        Figure 13-30.751 — Limits on Paving and Hardscaping for Residential Front, Rear, and Side Yards
+      </figcaption>
+    </figure>
 
     <div class="panel">
-      <h2>Where to find your official lot & building sizes</h2>
-      <p class="tiny">Look up recorded information via ParcelQuest: <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>. Then enter those numbers below.</p>
+      <h2>Where to find your official lot &amp; building sizes</h2>
+      <p class="tiny">Look up recorded information via ParcelQuest:
+        <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>.
+        Then enter those numbers below.</p>
     </div>
 
     <div class="panel">
-      <h2>1) Lot & Basics</h2>
-      <div class="row"><label for="lot">Lot area (sf)</label><input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000"/></div>
-      <div class="row"><label for="zone">Zoning</label><select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select></div>
-      <div class="row"><label for="bldg">Building footprint (impervious; sf)</label><input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/></div>
-      <p class="tiny">Lot area = total parcel area. Building footprint = plan‑view area of all roofed structures.</p>
+      <h2>1) Lot &amp; Basics</h2>
+      <div class="row">
+        <label for="lot">Lot area (sf)</label>
+        <input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000"/>
+        <div class="help">Lot area = total parcel area.</div>
+      </div>
+      <div class="row">
+        <label for="zone">Zoning</label>
+        <select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select>
+      </div>
+      <div class="row">
+        <label for="bldg">Building footprint (impervious; sf)</label>
+        <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
+        <div class="help">Building footprint = plan-view area of all roofed structures.</div>
+      </div>
     </div>
 
     <div class="panel">
@@ -104,16 +107,16 @@
     <div class="panel">
       <h2>3) Existing Paving (before project)</h2>
       <div class="row"><label for="frontDrive_exist">Front driveway paving (sf)</label><input id="frontDrive_exist" type="number" min="0" step="1"/></div>
-      <div class="row"><label for="frontOther_exist">Front walkways & other hardscape (sf)</label><input id="frontOther_exist" type="number" min="0" step="1"/></div>
+      <div class="row"><label for="frontOther_exist">Front walkways &amp; other hardscape (sf)</label><input id="frontOther_exist" type="number" min="0" step="1"/></div>
       <div class="row"><label for="rearPave_exist">Rear + side paving (sf)</label><input id="rearPave_exist" type="number" min="0" step="1"/></div>
       <div class="row"><label>Total existing impermeable paving (sf)</label><div id="imperv_exist" class="tiny">—</div></div>
-      <p class="tiny">Enter <em>impermeable</em> portions only (concrete, asphalt, compacted gravel). Permeable pavers count toward yard hardscape limits but not toward lot‑wide impervious total.</p>
+      <p class="tiny">Enter <em>impermeable</em> portions only (concrete, asphalt, compacted gravel). Permeable pavers count toward yard hardscape limits but not toward lot-wide impervious total.</p>
     </div>
 
     <div class="panel">
       <h2>4) Proposed Changes to Impervious Area (use negative numbers for removals)</h2>
       <div class="row"><label for="frontDrive_delta">Δ Front driveway paving (sf)</label><input id="frontDrive_delta" type="number" step="1"/></div>
-      <div class="row"><label for="frontOther_delta">Δ Front walkways & hardscape (sf)</label><input id="frontOther_delta" type="number" step="1"/></div>
+      <div class="row"><label for="frontOther_delta">Δ Front walkways &amp; hardscape (sf)</label><input id="frontOther_delta" type="number" step="1"/></div>
       <div class="row"><label for="rearPave_delta">Δ Rear + side paving (sf)</label><input id="rearPave_delta" type="number" step="1"/></div>
       <div class="row"><label>Total proposed change in impermeable area (sf)</label><div id="imperv_delta" class="tiny">—</div></div>
       <div class="btns"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
@@ -130,7 +133,7 @@
           <div><span id="fd_badge" class="badge">—</span></div>
         </div>
         <div class="card" id="card_front_other">
-          <h3>Front: Walkways & other hardscape ≤ 25%</h3>
+          <h3>Front: Walkways &amp; other hardscape ≤ 25%</h3>
           <div class="kv"><span>Other hardscape area</span> <b id="fo_area">—</b></div>
           <div class="kv"><span>Percent of front yard</span> <b id="fo_pct">—</b></div>
           <div><span id="fo_badge" class="badge">—</span></div>
@@ -163,160 +166,157 @@
       </div>
       <div class="hr"></div>
       <div class="tiny">
-        <div><strong>Permit trigger:</strong> New paving & hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div>
-        <div>“Landscaped area” excludes pavers, bricks, and other hard surfaces (even if permeable). Calculations are advisory; verify with the City. Source: <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.</div>
+        <div><strong>Permit trigger:</strong> New paving &amp; hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div>
+        <div>“Landscaped area” excludes pavers, bricks, and other hard surfaces (even if permeable). Calculations are advisory; verify with the City. Source:
+          <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.
+        </div>
       </div>
+    </div>
+
+    <div class="pagefoot">
+      <p class="tiny">
+        <a href="https://www.herculesca.gov/home/showpublisheddocument/18190/638844704384000000"
+           target="_blank" rel="noopener noreferrer">📄 Download the Paving Permit (PDF)</a>
+      </p>
     </div>
   </div>
 
-<script>
-  const $ = (id)=>document.getElementById(id);
-  const fmt = (n)=>isFinite(n)?new Intl.NumberFormat().format(n):'—';
-  const pct = (n)=>isFinite(n)?(n*100).toFixed(1)+'%':'—';
-  const readNum=(id)=>parseFloat($(id).value)||0;
+  <script>
+    const $ = (id)=>document.getElementById(id);
+    const fmt = (n)=>isFinite(n)?new Intl.NumberFormat().format(n):'—';
+    const pct = (n)=>isFinite(n)?(n*100).toFixed(1)+'%':'—';
+    const readNum=(id)=>parseFloat($(id).value)||0;
 
-  function updateImpervTotals(){
-    const fd0=readNum('frontDrive_exist');
-    const fo0=readNum('frontOther_exist');
-    const rs0=readNum('rearPave_exist');
-    const fdD=readNum('frontDrive_delta');
-    const foD=readNum('frontOther_delta');
-    const rsD=readNum('rearPave_delta');
-    const existing=fd0+fo0+rs0; // treating inputs as impermeable amounts
-    const delta=fdD+foD+rsD;    // delta to impermeable
-    $('imperv_exist').textContent=fmt(existing);
-    $('imperv_delta').textContent=fmt(delta);
-    return {existing, delta};
-  }
+    function updateImpervTotals(){
+      const fd0=readNum('frontDrive_exist');
+      const fo0=readNum('frontOther_exist');
+      const rs0=readNum('rearPave_exist');
+      const fdD=readNum('frontDrive_delta');
+      const foD=readNum('frontOther_delta');
+      const rsD=readNum('rearPave_delta');
+      const existing=fd0+fo0+rs0; // treating inputs as impermeable amounts
+      const delta=fdD+foD+rsD;    // delta to impermeable
+      $('imperv_exist').textContent=fmt(existing);
+      $('imperv_delta').textContent=fmt(delta);
+      return {existing, delta};
+    }
 
-  function setBadge(id, ok, on='Complies', off='Does not comply'){
-    const el=$(id); el.className='badge ' + (ok? 'ok':'no'); el.textContent= ok? '✔ '+on : '✖ '+off;
-  }
+    function setBadge(id, ok, on='Complies', off='Does not comply'){
+      const el=$(id); el.className='badge ' + (ok? 'ok':'no'); el.textContent= ok? '✔ '+on : '✖ '+off;
+    }
 
-  function calculateAndShow(){
-    const lot = readNum('lot');
-    const zone = $('zone').value;
-    const bldg = readNum('bldg');
-    const frontArea = readNum('frontArea');
-    const rearSideArea = readNum('rearSideArea');
+    function calculateAndShow(){
+      const lot = readNum('lot');
+      const zone = $('zone').value;
+      const bldg = readNum('bldg');
+      const frontArea = readNum('frontArea');
+      const rearSideArea = readNum('rearSideArea');
 
-    const fd0=readNum('frontDrive_exist');
-    const fo0=readNum('frontOther_exist');
-    const rs0=readNum('rearPave_exist');
-    const fdD=readNum('frontDrive_delta');
-    const foD=readNum('frontOther_delta');
-    const rsD=readNum('rearPave_delta');
+      const fd0=readNum('frontDrive_exist');
+      const fo0=readNum('frontOther_exist');
+      const rs0=readNum('rearPave_exist');
+      const fdD=readNum('frontDrive_delta');
+      const foD=readNum('frontOther_delta');
+      const rsD=readNum('rearPave_delta');
 
-    const fd = Math.max(0, fd0 + fdD);
-    const fo = Math.max(0, fo0 + foD);
-    const rs = Math.max(0, rs0 + rsD);
+      const fd = Math.max(0, fd0 + fdD);
+      const fo = Math.max(0, fo0 + foD);
+      const rs = Math.max(0, rs0 + rsD);
 
-    // Landscape areas
-    const frontLand = Math.max(0, frontArea - (fd + fo));
-    const rearLand  = Math.max(0, rearSideArea - rs);
+      // Landscape areas
+      const frontLand = Math.max(0, frontArea - (fd + fo));
+      const rearLand  = Math.max(0, rearSideArea - rs);
 
-    // Percents
-    const fdPct = frontArea>0 ? fd/frontArea : NaN;
-    const foPct = frontArea>0 ? fo/frontArea : NaN;
-    const flPct = frontArea>0 ? frontLand/frontArea : NaN;
-    const rsPct = rearSideArea>0 ? rs/rearSideArea : NaN;
-    const rlPct = rearSideArea>0 ? rearLand/rearSideArea : NaN;
+      // Percents
+      const fdPct = frontArea>0 ? fd/frontArea : NaN;
+      const foPct = frontArea>0 ? fo/frontArea : NaN;
+      const flPct = frontArea>0 ? frontLand/frontArea : NaN;
+      const rsPct = rearSideArea>0 ? rs/rearSideArea : NaN;
+      const rlPct = rearSideArea>0 ? rearLand/rearSideArea : NaN;
 
-    // Compliance
-    const fdOK = fdPct <= 0.35 + 1e-9;
-    const foOK = foPct <= 0.25 + 1e-9;
-    const flOK = flPct >= 0.40 - 1e-9;
-    const rsOK = rsPct <= 0.60 + 1e-9;
-    const rlOK = rlPct >= 0.40 - 1e-9;
+      // Compliance
+      const fdOK = fdPct <= 0.35 + 1e-9;
+      const foOK = foPct <= 0.25 + 1e-9;
+      const flOK = flPct >= 0.40 - 1e-9;
+      const rsOK = rsPct <= 0.60 + 1e-9;
+      const rlOK = rlPct >= 0.40 - 1e-9;
 
-    // Impervious totals (lot‑wide)
-    const {existing: impExist, delta: impDelta} = updateImpervTotals();
-    const impPaving = Math.max(0, impExist + impDelta);
-    const imp = impPaving + bldg;
-    const impPct = lot>0 ? imp/lot : NaN;
-    const impOver = zone==='RS-L' ? impPct>0.47+1e-9 : false;
+      // Impervious totals (lot-wide)
+      const {existing: impExist, delta: impDelta} = updateImpervTotals();
+      const impPaving = Math.max(0, impExist + impDelta);
+      const imp = impPaving + bldg;
+      const impPct = lot>0 ? imp/lot : NaN;
+      const impOver = zone==='RS-L' ? impPct>0.47+1e-9 : false;
 
-    // Permit trigger (count only additions)
-    const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
+      // Permit trigger (count only additions)
+      const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
 
-    // Area check
-    const sumKnown = bldg + frontArea + rearSideArea;
-    const ac = $('areaCheck');
-    if (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03) {
-      ac.classList.remove('hide');
-      ac.textContent = `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`;
-    } else { ac.classList.add('hide'); ac.textContent=''; }
+      // Area check
+      const sumKnown = bldg + frontArea + rearSideArea;
+      const ac = $('areaCheck');
+      if (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03) {
+        ac.classList.remove('hide');
+        ac.textContent = `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`;
+      } else { ac.classList.add('hide'); ac.textContent=''; }
 
-    // Write outputs
-    $('fd_area').textContent = fmt(fd) + ' sf';
-    $('fo_area').textContent = fmt(fo) + ' sf';
-    $('rs_area').textContent = fmt(rs) + ' sf';
-    $('fl_area').textContent = fmt(frontLand) + ' sf';
-    $('rl_area').textContent = fmt(rearLand) + ' sf';
+      // Write outputs
+      $('fd_area').textContent = fmt(fd) + ' sf';
+      $('fo_area').textContent = fmt(fo) + ' sf';
+      $('rs_area').textContent = fmt(rs) + ' sf';
+      $('fl_area').textContent = fmt(frontLand) + ' sf';
+      $('rl_area').textContent = fmt(rearLand) + ' sf';
 
-    $('fd_pct').textContent = pct(fdPct);
-    $('fo_pct').textContent = pct(foPct);
-    $('rs_pct').textContent = pct(rsPct);
-    $('fl_pct').textContent = pct(flPct);
-    $('rl_pct').textContent = pct(rlPct);
+      $('fd_pct').textContent = pct(fdPct);
+      $('fo_pct').textContent = pct(foPct);
+      $('rs_pct').textContent = pct(rsPct);
+      $('fl_pct').textContent = pct(flPct);
+      $('rl_pct').textContent = pct(rlPct);
 
-    setBadge('fd_badge', fdOK);
-    setBadge('fo_badge', foOK);
-    setBadge('fl_badge', flOK);
-    setBadge('rs_badge', rsOK);
-    setBadge('rl_badge', rlOK);
+      setBadge('fd_badge', fdOK);
+      setBadge('fo_badge', foOK);
+      setBadge('fl_badge', flOK);
+      setBadge('rs_badge', rsOK);
+      setBadge('rl_badge', rlOK);
 
-    $('imp_area').textContent = fmt(imp) + ' sf';
-    $('imp_pct').textContent = pct(impPct);
-    const impHost = $('imp_badge');
-    if (!isFinite(impPct)) { impHost.className='badge warn'; impHost.textContent='ℹ Enter lot & impervious inputs'; $('imp_note').textContent=''; }
-    else if (zone==='RS-L' && impOver) { impHost.className='badge no'; impHost.textContent='✖ Exceeds 47% (RS-L) — engineer calculations required'; $('imp_note').textContent='Per §13-30.750(C), if impervious (incl. structures) is > 47% in RS-L, submit civil engineer runoff calcs to the City Engineer.'; }
-    else { impHost.className='badge ok'; impHost.textContent='✔ Within advisory RS-L threshold'; $('imp_note').textContent = zone==='OTHER' ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.' : ''; }
+      $('imp_area').textContent = fmt(imp) + ' sf';
+      $('imp_pct').textContent = pct(impPct);
+      const impHost = $('imp_badge');
+      if (!isFinite(impPct)) { impHost.className='badge warn'; impHost.textContent='ℹ Enter lot & impervious inputs'; $('imp_note').textContent=''; }
+      else if (zone==='RS-L' && impOver) { impHost.className='badge no'; impHost.textContent='✖ Exceeds 47% (RS-L) — engineer calculations required'; $('imp_note').textContent='Per §13-30.750(C), if impervious (incl. structures) is > 47% in RS-L, submit civil engineer runoff calcs to the City Engineer.'; }
+      else { impHost.className='badge ok'; impHost.textContent='✔ Within advisory RS-L threshold'; $('imp_note').textContent = zone==='OTHER' ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.' : ''; }
 
-    const p = $('permit120');
-    if (added > 120) { p.classList.remove('hide'); p.className='alert warn'; p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`; }
-    else if (added>0) { p.classList.remove('hide'); p.className='alert ok'; p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`; }
-    else if (added===0) { p.classList.add('hide'); }
-    else { p.classList.remove('hide'); p.className='alert ok'; p.textContent = 'Net reduction in paving — permit size threshold not triggered.'; }
+      const p = $('permit120');
+      if (added > 120) { p.classList.remove('hide'); p.className='alert warn'; p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`; }
+      else if (added>0) { p.classList.remove('hide'); p.className='alert ok'; p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`; }
+      else if (added===0) { p.classList.add('hide'); }
+      else { p.classList.remove('hide'); p.className='alert ok'; p.textContent = 'Net reduction in paving — permit size threshold not triggered.'; }
 
-    $('permitLine').textContent = added? ` (your additions: ~${fmt(added)} sf)` : '';
+      $('permitLine').textContent = added? ` (your additions: ~${fmt(added)} sf)` : '';
 
-    // Reveal results panel
-    $('results').classList.remove('hide');
-    // Scroll to results for clarity
-    $('results').scrollIntoView({behavior:'smooth', block:'start'});
-  }
+      // Reveal results panel
+      $('results').classList.remove('hide');
+      // Scroll to results for clarity
+      $('results').scrollIntoView({behavior:'smooth', block:'start'});
+    }
 
-  // Wire up
-  $('calc').addEventListener('click', calculateAndShow);
-  $('reset').addEventListener('click',()=>{
-    document.querySelectorAll('input').forEach(i=>i.value='');
-    $('zone').value='RS-L';
-    $('imperv_exist').textContent='—';
-    $('imperv_delta').textContent='—';
-    $('areaCheck').classList.add('hide');
-    $('permit120').classList.add('hide');
-    $('results').classList.add('hide');
-  });
-  $('print').addEventListener('click',()=>window.print());
+    // Wire up
+    $('calc').addEventListener('click', calculateAndShow);
+    $('reset').addEventListener('click',()=>{
+      document.querySelectorAll('input').forEach(i=>i.value='');
+      $('zone').value='RS-L';
+      $('imperv_exist').textContent='—';
+      $('imperv_delta').textContent='—';
+      $('areaCheck').classList.add('hide');
+      $('permit120').classList.add('hide');
+      $('results').classList.add('hide');
+    });
+    $('print').addEventListener('click',()=>window.print());
 
-  // Keep totals in steps 3 & 4 live while typing
-  document.querySelectorAll('input, select').forEach(el=>{
-    el.addEventListener('input', ()=>{ updateImpervTotals(); });
-  });
-
-  // Footer permit line placeholder
-  const foot = document.createElement('div');
-  foot.innerHTML = `<div class="panel hide" id="footInfo"><div class="tiny"><strong>Permit trigger:</strong> New paving & hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div></div>`;
-  document.body.appendChild(foot);
-  <p class="tiny" style="margin-top:10px;text-align:center;">
-  <a href="https://www.herculesca.gov/home/showpublisheddocument/18190/638844704384000000"
-     target="_blank" rel="noopener noreferrer">
-    📄 Download the Paving Permit (PDF)
-  </a>
-</p>
-</script>
-
-
+    // Keep totals in steps 3 & 4 live while typing
+    document.querySelectorAll('input, select').forEach(el=>{
+      el.addEventListener('input', ()=>{ updateImpervTotals(); });
+    });
+  </script>
 </body>
 </html>
+
