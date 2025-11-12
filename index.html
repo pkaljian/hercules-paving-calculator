@@ -86,15 +86,29 @@
         <input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000"/>
         <div class="help">Lot area = total parcel area.</div>
       </div>
+
       <div class="row">
         <label for="zone">Zoning</label>
-        <select id="zone"><option value="RS-L">RS-L</option><option value="OTHER">Other residential</option></select>
+        <select id="zone">
+          <option value="RS-L">RS-L</option>
+          <option value="OTHER">Other residential</option>
+        </select>
       </div>
+
       <div class="row">
         <label for="bldg">Building footprint (impervious; sf)</label>
         <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
-        <div class="help">Building footprint = plan-view area of all roofed structures.</div>
+        <div class="help">Building footprint = plan-view area of all roofed structures. (Use auto-calc for multi-story homes.)</div>
       </div>
+
+      <div class="row">
+        <label></label>
+        <label class="tiny" style="display:flex;align-items:center;gap:8px">
+          <input id="autoBldg" type="checkbox" checked>
+          Auto-calculate building footprint as <em>lot − (front yard + rear/side yard)</em>
+        </label>
+      </div>
+      <p class="tiny" id="autoBldgNote" style="margin:4px 0 0 0;"></p>
     </div>
 
     <div class="panel">
@@ -205,7 +219,41 @@
       const el=$(id); el.className='badge ' + (ok? 'ok':'no'); el.textContent= ok? '✔ '+on : '✖ '+off;
     }
 
+    // --- Building auto-calc ---
+    function maybeAutoSetBuilding() {
+      const auto = document.getElementById('autoBldg');
+      const note = document.getElementById('autoBldgNote');
+      const bldgInput = document.getElementById('bldg');
+      if (!auto) return;
+
+      // Lock/unlock field
+      bldgInput.readOnly = !!auto.checked;
+
+      if (!auto.checked) { note.textContent = ''; return; }
+
+      const lot = readNum('lot');
+      const front = readNum('frontArea');
+      const rear  = readNum('rearSideArea');
+
+      if (lot <= 0 || (front <= 0 && rear <= 0)) { note.textContent = ''; return; }
+
+      const calc = lot - (front + rear);
+      const val = Math.max(0, Math.round(calc)); // never negative
+      bldgInput.value = val;
+
+      if (calc < 0) {
+        note.textContent = 'Heads up: front + rear/side exceed lot area — double-check yard entries.';
+      } else if (Math.abs((front + rear + val) - lot) > lot * 0.03) {
+        note.textContent = 'Note: yard + building differs from lot area by more than ~3%.';
+      } else {
+        note.textContent = '';
+      }
+    }
+
     function calculateAndShow(){
+      // ensure building reflects latest auto setting
+      maybeAutoSetBuilding();
+
       const lot = readNum('lot');
       const zone = $('zone').value;
       const bldg = readNum('bldg');
@@ -295,7 +343,6 @@
 
       // Reveal results panel
       $('results').classList.remove('hide');
-      // Scroll to results for clarity
       $('results').scrollIntoView({behavior:'smooth', block:'start'});
     }
 
@@ -309,12 +356,28 @@
       $('areaCheck').classList.add('hide');
       $('permit120').classList.add('hide');
       $('results').classList.add('hide');
+      // reset auto building state
+      const auto = document.getElementById('autoBldg');
+      if (auto) auto.checked = true;
+      document.getElementById('autoBldgNote').textContent = '';
+      document.getElementById('bldg').readOnly = true;
     });
     $('print').addEventListener('click',()=>window.print());
 
-    // Keep totals in steps 3 & 4 live while typing
+    // Keep totals live + update building auto-calc while typing
     document.querySelectorAll('input, select').forEach(el=>{
-      el.addEventListener('input', ()=>{ updateImpervTotals(); });
+      el.addEventListener('input', ()=>{
+        maybeAutoSetBuilding();
+        updateImpervTotals();
+      });
+    });
+
+    // Also react when the checkbox is toggled
+    document.getElementById('autoBldg')?.addEventListener('change', maybeAutoSetBuilding);
+
+    // Initialize on load (lock building input initially)
+    window.addEventListener('DOMContentLoaded', ()=>{
+      document.getElementById('bldg').readOnly = true;
     });
   </script>
 </body>
