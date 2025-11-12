@@ -98,7 +98,7 @@
       <div class="row">
         <label for="bldg">Building footprint (impervious; sf)</label>
         <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
-        <div class="help">Building footprint = plan-view area of all roofed structures. Use auto-calc for multi-story homes.</div>
+        <div class="help">Building footprint = plan-view area of all roofed structures. (Use auto-calc for multi-story homes.)</div>
       </div>
 
       <div class="row">
@@ -133,6 +133,7 @@
       <div class="row"><label for="frontOther_delta">Δ Front walkways &amp; hardscape (sf)</label><input id="frontOther_delta" type="number" step="1"/></div>
       <div class="row"><label for="rearPave_delta">Δ Rear + side paving (sf)</label><input id="rearPave_delta" type="number" step="1"/></div>
       <div class="row"><label>Total proposed change in impermeable area (sf)</label><div id="imperv_delta" class="tiny">—</div></div>
+
       <div class="btns"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
       <div id="permit120" class="alert warn hide"></div>
       <p class="tiny" id="nonconformNote" style="margin-top:8px;color:#555;"></p>
@@ -180,7 +181,7 @@
         </div>
       </div>
 
-      <!-- Nonconforming-but-out-of-scope note (shows after Calculate when applicable) -->
+      <!-- Global nonconforming note appears here when applicable -->
       <p class="tiny" id="nonconformNoteResults" style="margin-top:8px;color:#555;"></p>
 
       <div class="hr"></div>
@@ -213,15 +214,17 @@
       const fdD=readNum('frontDrive_delta');
       const foD=readNum('frontOther_delta');
       const rsD=readNum('rearPave_delta');
-      const existing=fd0+fo0+rs0; // existing impermeable paving total
-      const delta=fdD+foD+rsD;    // proposed change to impermeable
+      const existing=fd0+fo0+rs0; // user enters impermeable amounts
+      const delta=fdD+foD+rsD;    // net change to impermeable
       $('imperv_exist').textContent=fmt(existing);
       $('imperv_delta').textContent=fmt(delta);
-      return {existing, delta};
+      return {existing, delta, fdD, foD, rsD};
     }
 
-    function setBadge(id, ok, on='Complies', off='Does not comply'){
-      const el=$(id); el.className='badge ' + (ok? 'ok':'no'); el.textContent= ok? '✔ '+on : '✖ '+off;
+    function setBadgeState(id, state, text){
+      const el = $(id);
+      el.className = 'badge ' + (state || '');
+      el.textContent = text || '—';
     }
 
     // --- Building auto-calc ---
@@ -231,7 +234,6 @@
       const bldgInput = $('bldg');
       if (!auto) return;
 
-      // Lock/unlock field
       bldgInput.readOnly = !!auto.checked;
 
       if (!auto.checked) { note.textContent = ''; return; }
@@ -304,17 +306,76 @@
       // Permit trigger (count only additions)
       const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
 
-      // Nonconforming note (per-feature nexus):
-      // Show the note only when a feature is over its threshold AND its delta is exactly 0.
-      // For lot-wide RS-L impervious (>47%), show the note only if total delta across features is 0.
-      const anyFailNoScope =
-        (!fdOK && fdD === 0) ||     // driveway over 35% but not being changed
-        (!foOK && foD === 0) ||     // front other hardscape over 25% but not being changed
-        (!rsOK && rsD === 0) ||     // rear+side over 60% but not being changed
-        (impOver && (fdD + foD + rsD) === 0); // RS-L impervious >47% but no paving deltas proposed
+      // Area check
+      const sumKnown = bldg + frontArea + rearSideArea;
+      const ac = $('areaCheck');
+      if (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03) {
+        ac.classList.remove('hide');
+        ac.textContent = `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`;
+      } else { ac.classList.add('hide'); ac.textContent=''; }
 
-      const noteR = $('nonconformNoteResults'); // (in Results)
-      const note4 = $('nonconformNote');        // (in Step 4, optional)
+      // ------- Per-card badge logic (green/red/yellow) -------
+      // Yellow appears when the feature is nonconforming BUT the delta for that feature is 0
+      if (isFinite(fdPct)) {
+        if (fdOK) setBadgeState('fd_badge','ok','✔ Complies');
+        else if (fdD === 0) setBadgeState('fd_badge','warn','⚠ Over 35% (no change proposed)');
+        else setBadgeState('fd_badge','no','✖ Does not comply');
+      } else setBadgeState('fd_badge','warn','ℹ Enter front yard & driveway');
+
+      if (isFinite(foPct)) {
+        if (foOK) setBadgeState('fo_badge','ok','✔ Complies');
+        else if (foD === 0) setBadgeState('fo_badge','warn','⚠ Over 25% (no change proposed)');
+        else setBadgeState('fo_badge','no','✖ Does not comply');
+      } else setBadgeState('fo_badge','warn','ℹ Enter front yard & other hardscape');
+
+      if (isFinite(flPct)) {
+        if (flOK) setBadgeState('fl_badge','ok','✔ Complies');
+        else if (fdD === 0 && foD === 0) setBadgeState('fl_badge','warn','⚠ < 40% landscaped (no change proposed)');
+        else setBadgeState('fl_badge','no','✖ Does not comply');
+      } else setBadgeState('fl_badge','warn','ℹ Enter front yard areas');
+
+      if (isFinite(rsPct)) {
+        if (rsOK) setBadgeState('rs_badge','ok','✔ Complies');
+        else if (rsD === 0) setBadgeState('rs_badge','warn','⚠ Over 60% (no change proposed)');
+        else setBadgeState('rs_badge','no','✖ Does not comply');
+      } else setBadgeState('rs_badge','warn','ℹ Enter rear + side yard & paving');
+
+      if (isFinite(rlPct)) {
+        if (rlOK) setBadgeState('rl_badge','ok','✔ Complies');
+        else if (rsD === 0) setBadgeState('rl_badge','warn','⚠ < 40% landscaped (no change proposed)');
+        else setBadgeState('rl_badge','no','✖ Does not comply');
+      } else setBadgeState('rl_badge','warn','ℹ Enter rear + side yard areas');
+
+      // Stormwater / lot-wide impervious badge + note
+      $('imp_area').textContent = fmt(imp) + ' sf';
+      $('imp_pct').textContent = pct(impPct);
+      if (!isFinite(impPct)) {
+        setBadgeState('imp_badge','warn','ℹ Enter lot & impervious inputs');
+        $('imp_note').textContent = '';
+      } else if (zone === 'RS-L' && impOver) {
+        if ((fdD + foD + rsD) === 0) {
+          setBadgeState('imp_badge','warn','⚠ >47% existing (no change proposed)');
+          $('imp_note').textContent = 'Per §13-30.750(C), engineer runoff calcs are required if impervious is increased or modified.';
+        } else {
+          setBadgeState('imp_badge','no','✖ Exceeds 47% (RS-L)');
+          $('imp_note').textContent = 'Per §13-30.750(C), submit civil engineer runoff calculations to the City Engineer.';
+        }
+      } else {
+        setBadgeState('imp_badge','ok','✔ Within advisory RS-L threshold');
+        $('imp_note').textContent = (zone === 'OTHER')
+          ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.'
+          : '';
+      }
+
+      // Global nexus note (appears when something fails but is out-of-scope)
+      const anyFailNoScope =
+        (!fdOK && fdD === 0) ||
+        (!foOK && foD === 0) ||
+        (!rsOK && rsD === 0) ||
+        (isFinite(impPct) && zone==='RS-L' && impOver && (fdD + foD + rsD) === 0);
+
+      const noteR = $('nonconformNoteResults');
+      const note4 = $('nonconformNote');
       const noteTxt =
         'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
 
@@ -326,40 +387,7 @@
         if (note4) note4.textContent = '';
       }
 
-      // Area check
-      const sumKnown = bldg + frontArea + rearSideArea;
-      const ac = $('areaCheck');
-      if (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03) {
-        ac.classList.remove('hide');
-        ac.textContent = `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`;
-      } else { ac.classList.add('hide'); ac.textContent=''; }
-
-      // Write outputs
-      $('fd_area').textContent = fmt(fd) + ' sf';
-      $('fo_area').textContent = fmt(fo) + ' sf';
-      $('rs_area').textContent = fmt(rs) + ' sf';
-      $('fl_area').textContent = fmt(frontLand) + ' sf';
-      $('rl_area').textContent = fmt(rearLand) + ' sf';
-
-      $('fd_pct').textContent = pct(fdPct);
-      $('fo_pct').textContent = pct(foPct);
-      $('rs_pct').textContent = pct(rsPct);
-      $('fl_pct').textContent = pct(flPct);
-      $('rl_pct').textContent = pct(rlPct);
-
-      setBadge('fd_badge', fdOK);
-      setBadge('fo_badge', foOK);
-      setBadge('fl_badge', flOK);
-      setBadge('rs_badge', rsOK);
-      setBadge('rl_badge', rlOK);
-
-      $('imp_area').textContent = fmt(imp) + ' sf';
-      $('imp_pct').textContent = pct(impPct);
-      const impHost = $('imp_badge');
-      if (!isFinite(impPct)) { impHost.className='badge warn'; impHost.textContent='ℹ Enter lot & impervious inputs'; $('imp_note').textContent=''; }
-      else if (zone==='RS-L' && impOver) { impHost.className='badge no'; impHost.textContent='✖ Exceeds 47% (RS-L) — engineer calculations required'; $('imp_note').textContent='Per §13-30.750(C), if impervious (incl. structures) is > 47% in RS-L, submit civil engineer runoff calcs to the City Engineer.'; }
-      else { impHost.className='badge ok'; impHost.textContent='✔ Within advisory RS-L threshold'; $('imp_note').textContent = zone==='OTHER' ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.' : ''; }
-
+      // Permit line + trigger banner
       const p = $('permit120');
       if (added > 120) { p.classList.remove('hide'); p.className='alert warn'; p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`; }
       else if (added>0) { p.classList.remove('hide'); p.className='alert ok'; p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`; }
@@ -409,5 +437,6 @@
   </script>
 </body>
 </html>
+
 
 
