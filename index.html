@@ -135,6 +135,8 @@
       <div class="row"><label>Total proposed change in impermeable area (sf)</label><div id="imperv_delta" class="tiny">—</div></div>
       <div class="btns"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
       <div id="permit120" class="alert warn hide"></div>
+      <p class="tiny" id="nonconformNote" style="margin-top:8px;color:#555;"></p>
+
     </div>
 
     <div class="panel hide" id="results" aria-live="polite">
@@ -298,6 +300,15 @@
 
       // Permit trigger (count only additions)
       const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
+
+      // Nonconforming note
+const note = $('nonconformNote');
+if (added === 0 && (impOver || !fdOK || !foOK || !flOK || !rsOK || !rlOK)) {
+  note.textContent =
+    'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
+} else {
+  note.textContent = '';
+}
 
       // Area check
       const sumKnown = bldg + frontArea + rearSideArea;
