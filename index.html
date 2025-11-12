@@ -6,34 +6,58 @@
   <title>Residential Yard Paving Compliance Calculator — Hercules §13-30.750</title>
   <style>
     :root{
-      --bg:#f4f6f9; --panel:#ffffff; --text:#1b2a41; --muted:#64748b; --brand:#1f3f68; --brand-900:#173352; --line:#e5e9f2;
+      --bg:#f4f6f9; --panel:#ffffff; --text:#1b2a41; --muted:#64748b;
+      --brand:#1f3f68; --brand-900:#173352; --accent:#d4a017; --line:#e5e9f2;
       --good:#198754; --bad:#d9534f; --warn:#e39b27;
     }
-    * { box-sizing: border-box; }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"}
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;height:100%;background:var(--bg);color:var(--text);
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"
+    }
     a{color:var(--brand);text-decoration:underline;text-underline-offset:2px}
     a:hover{color:var(--brand-900)}
     .wrap{max-width:980px;margin:0 auto;padding:28px}
     h1{font-size:1.75rem;margin:0 0 16px;color:var(--brand)}
     h2{font-size:1.1rem;margin:24px 0 8px;color:var(--brand)}
-    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(31,63,104,.06);margin-bottom:14px; overflow:hidden;}
-    .row{display:grid;grid-template-columns:minmax(180px,260px) 1fr;gap:14px;align-items:center;margin:10px 0}
+    .panel{
+      background:var(--panel);border:1px solid var(--line);border-radius:14px;
+      padding:18px;margin-bottom:14px;box-shadow:0 6px 20px rgba(31,63,104,.06);
+      overflow:hidden;
+    }
+    .row{
+      display:grid;grid-template-columns:minmax(180px,260px) 1fr;
+      gap:14px;align-items:center;margin:10px 0;
+    }
     label{font-size:.95rem;color:var(--brand-900)}
-    input[type="number"],select,input[type="text"]{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--text)}
+    input[type="number"],select,input[type="text"]{
+      width:100%;padding:11px 12px;border-radius:10px;
+      border:1px solid var(--line);background:#fff;color:var(--text);
+    }
     input::placeholder{color:#8590c7}
-    .help{grid-column:2 / span 1;font-size:.85rem;color:var(--muted);margin-top:-6px}
+    .help{grid-column:2/span 1;font-size:.85rem;color:var(--muted);margin-top:-6px}
     .tiny{font-size:.9rem;color:var(--muted)}
     .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600;border:1px solid var(--line);background:#f8fafc;color:var(--text)}
-    .ok{background:rgba(25,135,84,.08);color:#0f5132;border-color:rgba(25,135,84,.25)}
-    .no{background:rgba(217,83,79,.08);color:#842029;border-color:rgba(217,83,79,.25)}
-    .warn{background:rgba(227,155,39,.12);color:#7a4a08;border-color:rgba(227,155,39,.28)}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;font-weight:600;
+      border:1px solid var(--line);background:#f8fafc;color:var(--text);
+    }
+    .badge.ok{background:rgba(25,135,84,.08);color:#0f5132;border-color:rgba(25,135,84,.25)}
+    .badge.no{background:rgba(217,83,79,.08);color:#842029;border-color:rgba(217,83,79,.25)}
+    .badge.warn{background:rgba(227,155,39,.10);color:#7a4a08;border-color:rgba(227,155,39,.28)}
     .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-    .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 3px 14px rgba(31,63,104,.05)}
+    .card{
+      background:#fff;border:1px solid var(--line);border-radius:12px;
+      padding:14px;box-shadow:0 3px 14px rgba(31,63,104,.05);
+    }
     .kv{display:flex;justify-content:space-between;gap:10px;margin:6px 0}
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    button{cursor:pointer;background:var(--brand);border:1px solid var(--brand);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;box-shadow:0 2px 0 rgba(0,0,0,.04)}
+    button{
+      cursor:pointer;background:var(--brand);border:1px solid var(--brand);
+      color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;
+      box-shadow:0 2px 0 rgba(0,0,0,.04);
+    }
     button:hover{background:var(--brand-900);border-color:var(--brand-900)}
     .hr{height:1px;background:var(--line);margin:14px 0}
     .alert{padding:10px;border-radius:10px;margin-top:10px}
@@ -42,13 +66,14 @@
     .alert.ok{background:rgba(25,135,84,.08);border:1px solid rgba(25,135,84,.28);color:#0f5132}
     .hide{display:none}
 
-    /* Figure styles */
-    .figure { text-align: center; margin: 12px 0 18px; }
-    .figure img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 3px 14px rgba(31,63,104,.05); }
-    .figure figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+    .figure{text-align:center;margin:12px 0 18px}
+    .figure img{
+      max-width:100%;height:auto;border:1px solid var(--line);
+      border-radius:10px;box-shadow:0 3px 14px rgba(31,63,104,.05);
+    }
+    .figure figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
 
-    /* Footer link */
-    .pagefoot{ text-align:center; margin:18px 0 6px; }
+    .pagefoot{text-align:center;margin:18px 0 6px}
   </style>
 </head>
 <body>
@@ -75,9 +100,11 @@
 
     <div class="panel">
       <h2>Where to find your official lot &amp; building sizes</h2>
-      <p class="tiny">Look up recorded information via ParcelQuest:
+      <p class="tiny">
+        Look up recorded information via ParcelQuest:
         <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>.
-        Then enter those numbers below.</p>
+        Then enter those numbers below.
+      </p>
     </div>
 
     <div class="panel">
@@ -99,7 +126,10 @@
       <div class="row">
         <label for="bldg">Building footprint (impervious; sf)</label>
         <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
-        <div class="help">Building footprint = plan-view area of all roofed structures. (Use auto-calc for multi-story homes.)</div>
+        <div class="help">
+          Building footprint = plan-view area of all roofed structures.
+          (Use auto-calc for most multi-story homes.)
+        </div>
       </div>
 
       <div class="row">
@@ -114,30 +144,65 @@
 
     <div class="panel">
       <h2>2) Yard Areas</h2>
-      <div class="row"><label for="frontArea">Front yard area (sf)</label><input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800"/></div>
-      <div class="row"><label for="rearSideArea">Rear + side yard area (sf)</label><input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600"/></div>
+      <div class="row">
+        <label for="frontArea">Front yard area (sf)</label>
+        <input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
+      </div>
+      <div class="row">
+        <label for="rearSideArea">Rear + side yard area (sf)</label>
+        <input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600"/>
+      </div>
       <div id="areaCheck" class="alert warn hide"></div>
     </div>
 
     <div class="panel">
       <h2>3) Existing Paving (before project)</h2>
-      <div class="row"><label for="frontDrive_exist">Front driveway paving (sf)</label><input id="frontDrive_exist" type="number" min="0" step="1"/></div>
-      <div class="row"><label for="frontOther_exist">Front walkways &amp; other hardscape (sf)</label><input id="frontOther_exist" type="number" min="0" step="1"/></div>
-      <div class="row"><label for="rearPave_exist">Rear + side paving (sf)</label><input id="rearPave_exist" type="number" min="0" step="1"/></div>
-      <div class="row"><label>Total existing impermeable paving (sf)</label><div id="imperv_exist" class="tiny">—</div></div>
-      <p class="tiny">Enter <em>impermeable</em> portions only (concrete, asphalt, compacted gravel). Permeable pavers count toward yard hardscape limits but not toward lot-wide impervious total.</p>
+      <div class="row">
+        <label for="frontDrive_exist">Front driveway paving (sf)</label>
+        <input id="frontDrive_exist" type="number" min="0" step="1"/>
+      </div>
+      <div class="row">
+        <label for="frontOther_exist">Front walkways &amp; other hardscape (sf)</label>
+        <input id="frontOther_exist" type="number" min="0" step="1"/>
+      </div>
+      <div class="row">
+        <label for="rearPave_exist">Rear + side paving (sf)</label>
+        <input id="rearPave_exist" type="number" min="0" step="1"/>
+      </div>
+      <div class="row">
+        <label>Total existing impermeable paving (sf)</label>
+        <div id="imperv_exist" class="tiny">—</div>
+      </div>
+      <p class="tiny">
+        Enter <em>impermeable</em> portions only (concrete, asphalt, compacted gravel).
+        Permeable pavers count toward yard hardscape limits but not toward lot-wide impervious total.
+      </p>
     </div>
 
     <div class="panel">
       <h2>4) Proposed Changes to Impervious Area (use negative numbers for removals)</h2>
-      <div class="row"><label for="frontDrive_delta">Δ Front driveway paving (sf)</label><input id="frontDrive_delta" type="number" step="1"/></div>
-      <div class="row"><label for="frontOther_delta">Δ Front walkways &amp; hardscape (sf)</label><input id="frontOther_delta" type="number" step="1"/></div>
-      <div class="row"><label for="rearPave_delta">Δ Rear + side paving (sf)</label><input id="rearPave_delta" type="number" step="1"/></div>
-      <div class="row"><label>Total proposed change in impermeable area (sf)</label><div id="imperv_delta" class="tiny">—</div></div>
-
-      <div class="btns"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
+      <div class="row">
+        <label for="frontDrive_delta">Δ Front driveway paving (sf)</label>
+        <input id="frontDrive_delta" type="number" step="1"/>
+      </div>
+      <div class="row">
+        <label for="frontOther_delta">Δ Front walkways &amp; hardscape (sf)</label>
+        <input id="frontOther_delta" type="number" step="1"/>
+      </div>
+      <div class="row">
+        <label for="rearPave_delta">Δ Rear + side paving (sf)</label>
+        <input id="rearPave_delta" type="number" step="1"/>
+      </div>
+      <div class="row">
+        <label>Total proposed change in impermeable area (sf)</label>
+        <div id="imperv_delta" class="tiny">—</div>
+      </div>
+      <div class="btns">
+        <button id="calc">Calculate</button>
+        <button id="reset">Reset</button>
+        <button id="print">Print / Save PDF</button>
+      </div>
       <div id="permit120" class="alert warn hide"></div>
-      <p class="tiny" id="nonconformNote" style="margin-top:8px;color:#555;"></p>
     </div>
 
     <div class="panel hide" id="results" aria-live="polite">
@@ -145,74 +210,70 @@
       <div class="cards">
         <div class="card" id="card_front_drive">
           <h3>Front: Driveway ≤ 35% of front yard</h3>
-          <div class="kv"><span>Driveway area</span> <b id="fd_area">—</b></div>
-          <div class="kv"><span>Percent of front yard</span> <b id="fd_pct">—</b></div>
-          <div class="badges">
-            <span id="fd_badge" class="badge">—</span>
-            <span id="fd_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
-          </div>
+          <div class="kv"><span>Driveway area</span><b id="fd_area">—</b></div>
+          <div class="kv"><span>Percent of front yard</span><b id="fd_pct">—</b></div>
+          <div class="inline"><span id="fd_badge" class="badge">—</span></div>
+          <div class="inline"><span id="fd_scope" class="badge warn hide"></span></div>
         </div>
 
         <div class="card" id="card_front_other">
           <h3>Front: Walkways &amp; other hardscape ≤ 25%</h3>
-          <div class="kv"><span>Other hardscape area</span> <b id="fo_area">—</b></div>
-          <div class="kv"><span>Percent of front yard</span> <b id="fo_pct">—</b></div>
-          <div class="badges">
-            <span id="fo_badge" class="badge">—</span>
-            <span id="fo_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
-          </div>
+          <div class="kv"><span>Other hardscape area</span><b id="fo_area">—</b></div>
+          <div class="kv"><span>Percent of front yard</span><b id="fo_pct">—</b></div>
+          <div class="inline"><span id="fo_badge" class="badge">—</span></div>
+          <div class="inline"><span id="fo_scope" class="badge warn hide"></span></div>
         </div>
 
         <div class="card" id="card_front_land">
           <h3>Front: Landscaped area ≥ 40%</h3>
-          <div class="kv"><span>Landscaped area</span> <b id="fl_area">—</b></div>
-          <div class="kv"><span>Percent of front yard</span> <b id="fl_pct">—</b></div>
-          <div class="badges">
-            <span id="fl_badge" class="badge">—</span>
-            <span id="fl_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
-          </div>
+          <div class="kv"><span>Landscaped area</span><b id="fl_area">—</b></div>
+          <div class="kv"><span>Percent of front yard</span><b id="fl_pct">—</b></div>
+          <div class="inline"><span id="fl_badge" class="badge">—</span></div>
+          <div class="inline"><span id="fl_scope" class="badge warn hide"></span></div>
         </div>
 
         <div class="card" id="card_rs_pave">
           <h3>Rear + side: Total paving ≤ 60%</h3>
-          <div class="kv"><span>Total paving</span> <b id="rs_area">—</b></div>
-          <div class="kv"><span>Percent of rear + side</span> <b id="rs_pct">—</b></div>
-          <div class="badges">
-            <span id="rs_badge" class="badge">—</span>
-            <span id="rs_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
-          </div>
+          <div class="kv"><span>Total paving</span><b id="rs_area">—</b></div>
+          <div class="kv"><span>Percent of rear + side</span><b id="rs_pct">—</b></div>
+          <div class="inline"><span id="rs_badge" class="badge">—</span></div>
+          <div class="inline"><span id="rs_scope" class="badge warn hide"></span></div>
         </div>
 
         <div class="card" id="card_rs_land">
           <h3>Rear + side: Landscaped area ≥ 40%</h3>
-          <div class="kv"><span>Landscaped area</span> <b id="rl_area">—</b></div>
-          <div class="kv"><span>Percent of rear + side</span> <b id="rl_pct">—</b></div>
-          <div class="badges">
-            <span id="rl_badge" class="badge">—</span>
-            <span id="rl_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
-          </div>
+          <div class="kv"><span>Landscaped area</span><b id="rl_area">—</b></div>
+          <div class="kv"><span>Percent of rear + side</span><b id="rl_pct">—</b></div>
+          <div class="inline"><span id="rl_badge" class="badge">—</span></div>
+          <div class="inline"><span id="rl_scope" class="badge warn hide"></span></div>
         </div>
 
         <div class="card" id="card_storm">
           <h3>Stormwater: Impervious coverage (lot-wide)</h3>
-          <div class="kv"><span>Impervious total (bldg + paving)</span> <b id="imp_area">—</b></div>
-          <div class="kv"><span>Percent of lot</span> <b id="imp_pct">—</b></div>
-          <div class="badges">
-            <span id="imp_badge" class="badge">—</span>
-            <span id="imp_note_local" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
-          </div>
+          <div class="kv"><span>Impervious total (bldg + paving)</span><b id="imp_area">—</b></div>
+          <div class="kv"><span>Percent of lot</span><b id="imp_pct">—</b></div>
+          <div class="inline"><span id="imp_badge" class="badge">—</span></div>
+          <div class="inline"><span id="imp_scope" class="badge warn hide"></span></div>
           <div id="imp_note" class="tiny" style="margin-top:6px"></div>
         </div>
       </div>
 
-      <!-- Global nonconforming note appears here when applicable -->
-      <p class="tiny" id="nonconformNoteResults" style="margin-top:8px;color:#555;"></p>
-
       <div class="hr"></div>
       <div class="tiny">
-        <div><strong>Permit trigger:</strong> New paving &amp; hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div>
-        <div>“Landscaped area” excludes pavers, bricks, and other hard surfaces (even if permeable). Calculations are advisory; verify with the City. Source:
-          <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.
+        <div>
+          <strong>Permit trigger:</strong>
+          New paving &amp; hardscape additions over <b>120 sf</b>
+          require a paving permit (Zoning Clearance).
+          <span id="permitLine" class="muted"></span>
+        </div>
+        <div>
+          “Landscaped area” excludes pavers, bricks, and other hard surfaces (even if permeable).
+          Calculations are advisory; verify with the City.
+          Source:
+          <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750"
+             target="_blank" rel="noopener">
+            Hercules Municipal Code §13-30.750
+          </a>.
         </div>
       </div>
     </div>
@@ -220,47 +281,19 @@
     <div class="pagefoot">
       <p class="tiny">
         <a href="https://www.herculesca.gov/home/showpublisheddocument/18190/638844704384000000"
-           target="_blank" rel="noopener noreferrer">📄 Download the Paving Permit (PDF)</a>
+           target="_blank" rel="noopener noreferrer">
+          📄 Download the Paving Permit (PDF)
+        </a>
       </p>
     </div>
   </div>
 
   <script>
-    const $ = (id)=>document.getElementById(id);
-    const fmt = (n)=>isFinite(n)?new Intl.NumberFormat().format(n):'—';
-    const pct = (n)=>isFinite(n)?(n*100).toFixed(1)+'%':'—';
-    const readNum=(id)=>parseFloat($(id).value)||0;
+    const $  = id => document.getElementById(id);
+    const fmt = n => Number.isFinite(n) ? new Intl.NumberFormat().format(n) : '—';
+    const readNum = id => parseFloat($(id).value) || 0;
 
-    function updateImpervTotals(){
-      const fd0=readNum('frontDrive_exist');
-      const fo0=readNum('frontOther_exist');
-      const rs0=readNum('rearPave_exist');
-      const fdD=readNum('frontDrive_delta');
-      const foD=readNum('frontOther_delta');
-      const rsD=readNum('rearPave_delta');
-      const existing=fd0+fo0+rs0; // user enters impermeable amounts
-      const delta=fdD+foD+rsD;    // net change to impermeable
-      $('imperv_exist').textContent=fmt(existing);
-      $('imperv_delta').textContent=fmt(delta);
-      return {existing, delta, fdD, foD, rsD};
-    }
-
-    function setPrimaryBadge(id, state, text){
-      const el = $(id);
-      el.className = 'badge ' + (state || '');
-      el.textContent = text || '—';
-    }
-    function setSecondaryNote(id, show){
-      const el = $(id);
-      if (!el) return;
-      if (show) el.classList.remove('hide'); else el.classList.add('hide');
-    }
-    function clearSecondaryNote(id){
-      const el = $(id);
-      if (el) el.classList.add('hide');
-    }
-
-    // --- Building auto-calc ---
+    // Auto-calc building footprint from lot & yard areas
     function maybeAutoSetBuilding() {
       const auto = $('autoBldg');
       const note = $('autoBldgNote');
@@ -271,14 +304,17 @@
 
       if (!auto.checked) { note.textContent = ''; return; }
 
-      const lot = readNum('lot');
+      const lot   = readNum('lot');
       const front = readNum('frontArea');
       const rear  = readNum('rearSideArea');
 
-      if (lot <= 0 || (front <= 0 && rear <= 0)) { note.textContent = ''; return; }
+      if (lot <= 0 || (front <= 0 && rear <= 0)) {
+        note.textContent = '';
+        return;
+      }
 
       const calc = lot - (front + rear);
-      const val = Math.max(0, Math.round(calc)); // never negative
+      const val  = Math.max(0, Math.round(calc));
       bldgInput.value = val;
 
       if (calc < 0) {
@@ -290,204 +326,263 @@
       }
     }
 
-    function calculateAndShow(){
-      // ensure building reflects latest auto setting
+    // Sum existing + delta impermeable paving
+    function updateImpervTotals() {
+      const fd0 = readNum('frontDrive_exist');
+      const fo0 = readNum('frontOther_exist');
+      const rs0 = readNum('rearPave_exist');
+
+      const fdD = readNum('frontDrive_delta');
+      const foD = readNum('frontOther_delta');
+      const rsD = readNum('rearPave_delta');
+
+      const existing = fd0 + fo0 + rs0;
+      const delta    = fdD + foD + rsD;
+
+      $('imperv_exist').textContent = fmt(existing);
+      $('imperv_delta').textContent = fmt(delta);
+
+      return { existing, delta };
+    }
+
+    function setBadge(mainId, scopeId, state, mainText, showScope) {
+      const main = $(mainId);
+      const scope = $(scopeId);
+      if (!main) return;
+
+      main.className = 'badge';
+      if (state === 'ok')   main.classList.add('ok');
+      if (state === 'no')   main.classList.add('no');
+      if (state === 'warn') main.classList.add('warn');
+      main.textContent = mainText;
+
+      if (scope) {
+        if (showScope) {
+          scope.className = 'badge warn';
+          scope.textContent = '⚠ No change proposed — no action required at this time.';
+          scope.classList.remove('hide');
+        } else {
+          scope.classList.add('hide');
+          scope.textContent = '';
+        }
+      }
+    }
+
+    function calculateAndShow() {
       maybeAutoSetBuilding();
 
-      const lot = readNum('lot');
-      const zone = $('zone').value;
-      const bldg = readNum('bldg');
-      const frontArea = readNum('frontArea');
+      const lot   = readNum('lot');
+      const zone  = $('zone').value;
+      const bldg  = readNum('bldg');
+      const frontArea    = readNum('frontArea');
       const rearSideArea = readNum('rearSideArea');
 
-      const fd0=readNum('frontDrive_exist');
-      const fo0=readNum('frontOther_exist');
-      const rs0=readNum('rearPave_exist');
-      const fdD=readNum('frontDrive_delta');
-      const foD=readNum('frontOther_delta');
-      const rsD=readNum('rearPave_delta');
+      const fd0 = readNum('frontDrive_exist');
+      const fo0 = readNum('frontOther_exist');
+      const rs0 = readNum('rearPave_exist');
+
+      const fdD = readNum('frontDrive_delta');
+      const foD = readNum('frontOther_delta');
+      const rsD = readNum('rearPave_delta');
 
       const fd = Math.max(0, fd0 + fdD);
       const fo = Math.max(0, fo0 + foD);
       const rs = Math.max(0, rs0 + rsD);
 
-      // Landscape areas
       const frontLand = Math.max(0, frontArea - (fd + fo));
       const rearLand  = Math.max(0, rearSideArea - rs);
 
-      // Percents
-      const fdPct = frontArea>0 ? fd/frontArea : NaN;
-      const foPct = frontArea>0 ? fo/frontArea : NaN;
-      const flPct = frontArea>0 ? frontLand/frontArea : NaN;
-      const rsPct = rearSideArea>0 ? rs/rearSideArea : NaN;
-      const rlPct = rearSideArea>0 ? rearLand/rearSideArea : NaN;
+      const fdPct = frontArea > 0 ? fd / frontArea : NaN;
+      const foPct = frontArea > 0 ? fo / frontArea : NaN;
+      const flPct = frontArea > 0 ? frontLand / frontArea : NaN;
+      const rsPct = rearSideArea > 0 ? rs / rearSideArea : NaN;
+      const rlPct = rearSideArea > 0 ? rearLand / rearSideArea : NaN;
 
-      // Compliance
       const fdOK = fdPct <= 0.35 + 1e-9;
       const foOK = foPct <= 0.25 + 1e-9;
       const flOK = flPct >= 0.40 - 1e-9;
       const rsOK = rsPct <= 0.60 + 1e-9;
       const rlOK = rlPct >= 0.40 - 1e-9;
 
-      // Impervious totals (lot-wide)
-      const {existing: impExist, delta: impDelta} = updateImpervTotals();
+      const { existing: impExist, delta: impDelta } = updateImpervTotals();
       const impPaving = Math.max(0, impExist + impDelta);
-      const imp = impPaving + bldg;
-      const impPct = lot>0 ? imp/lot : NaN;
-      const impOver = zone==='RS-L' ? impPct>0.47+1e-9 : false;
+      const imp       = impPaving + bldg;
+      const impPct    = lot > 0 ? imp / lot : NaN;
+      const impOver   = zone === 'RS-L' && impPct > 0.47 + 1e-9;
 
-      // Permit trigger (count only additions)
-      const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
+      const added = [fdD, foD, rsD].reduce((s, v) => s + Math.max(0, v || 0), 0);
 
-      // Area check
+      // Area sanity check
       const sumKnown = bldg + frontArea + rearSideArea;
       const ac = $('areaCheck');
-      if (lot>0 && sumKnown>0 && Math.abs(sumKnown - lot) > lot*0.03) {
+      if (lot > 0 && sumKnown > 0 && Math.abs(sumKnown - lot) > lot * 0.03) {
         ac.classList.remove('hide');
-        ac.textContent = `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`;
-      } else { ac.classList.add('hide'); ac.textContent=''; }
+        ac.textContent =
+          `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`;
+      } else {
+        ac.classList.add('hide');
+        ac.textContent = '';
+      }
 
-      // ------- Per-card badges (primary red/green + secondary yellow note) -------
+      // --- Write outputs (areas & percents) ---
+      const setSF  = (id, val) => { const el = $(id); if (el) el.textContent  = Number.isFinite(val) ? `${fmt(val)} sf` : '—'; };
+      const setPct = (id, val) => { const el = $(id); if (el) el.textContent = Number.isFinite(val) ? `${(val*100).toFixed(1)}%` : '—'; };
+
+      setSF('fd_area', fd);
+      setSF('fo_area', fo);
+      setSF('rs_area', rs);
+      setSF('fl_area', frontLand);
+      setSF('rl_area', rearLand);
+
+      setPct('fd_pct', fdPct);
+      setPct('fo_pct', foPct);
+      setPct('rs_pct', rsPct);
+      setPct('fl_pct', flPct);
+      setPct('rl_pct', rlPct);
+
+      $('imp_area').textContent = Number.isFinite(imp) ? `${fmt(imp)} sf` : '—';
+      $('imp_pct').textContent  = Number.isFinite(impPct) ? `${(impPct*100).toFixed(1)}%` : '—';
+
+      // --- Badges with “no change” scope logic ---
 
       // Front driveway
-      if (isFinite(fdPct)) {
-        if (fdOK) { setPrimaryBadge('fd_badge','ok','✔ Complies'); clearSecondaryNote('fd_note'); }
-        else {
-          setPrimaryBadge('fd_badge','no','✖ Over 35% of front yard');
-          setSecondaryNote('fd_note', fdD === 0);
-        }
-      } else { setPrimaryBadge('fd_badge','warn','ℹ Enter front yard & driveway'); clearSecondaryNote('fd_note'); }
+      if (!frontArea) {
+        setBadge('fd_badge', 'fd_scope', 'warn', 'ℹ Enter front yard area', false);
+      } else if (fdOK) {
+        setBadge('fd_badge', 'fd_scope', 'ok', '✔ Complies', false);
+      } else {
+        const showScope = fdD === 0;
+        setBadge('fd_badge', 'fd_scope', 'no', '✖ Over 35% of front yard', showScope);
+      }
 
       // Front other hardscape
-      if (isFinite(foPct)) {
-        if (foOK) { setPrimaryBadge('fo_badge','ok','✔ Complies'); clearSecondaryNote('fo_note'); }
-        else {
-          setPrimaryBadge('fo_badge','no','✖ Over 25% of front yard');
-          setSecondaryNote('fo_note', foD === 0);
-        }
-      } else { setPrimaryBadge('fo_badge','warn','ℹ Enter front yard & other hardscape'); clearSecondaryNote('fo_note'); }
+      if (!frontArea) {
+        setBadge('fo_badge', 'fo_scope', 'warn', 'ℹ Enter front yard area', false);
+      } else if (foOK) {
+        setBadge('fo_badge', 'fo_scope', 'ok', '✔ Complies', false);
+      } else {
+        const showScope = foD === 0;
+        setBadge('fo_badge', 'fo_scope', 'no', '✖ Over 25% of front yard', showScope);
+      }
 
-      // Front landscape
-      const frontNoChange = (fdD === 0 && foD === 0);
-      if (isFinite(flPct)) {
-        if (flOK) { setPrimaryBadge('fl_badge','ok','✔ Complies'); clearSecondaryNote('fl_note'); }
-        else {
-          setPrimaryBadge('fl_badge','no','✖ Less than 40% landscaped');
-          setSecondaryNote('fl_note', frontNoChange);
-        }
-      } else { setPrimaryBadge('fl_badge','warn','ℹ Enter front yard areas'); clearSecondaryNote('fl_note'); }
+      // Front landscaped
+      if (!frontArea) {
+        setBadge('fl_badge', 'fl_scope', 'warn', 'ℹ Enter front yard area', false);
+      } else if (flOK) {
+        setBadge('fl_badge', 'fl_scope', 'ok', '✔ At least 40% landscaped', false);
+      } else {
+        const showScope = (fdD === 0 && foD === 0); // landscaping only changes if paving changes
+        setBadge('fl_badge', 'fl_scope', 'no', '✖ Less than 40% landscaped', showScope);
+      }
 
-      // Rear + side paving
-      if (isFinite(rsPct)) {
-        if (rsOK) { setPrimaryBadge('rs_badge','ok','✔ Complies'); clearSecondaryNote('rs_note'); }
-        else {
-          setPrimaryBadge('rs_badge','no','✖ Over 60% of rear + side');
-          setSecondaryNote('rs_note', rsD === 0);
-        }
-      } else { setPrimaryBadge('rs_badge','warn','ℹ Enter rear + side yard & paving'); clearSecondaryNote('rs_note'); }
+      // Rear+side paving
+      if (!rearSideArea) {
+        setBadge('rs_badge', 'rs_scope', 'warn', 'ℹ Enter rear + side yard area', false);
+      } else if (rsOK) {
+        setBadge('rs_badge', 'rs_scope', 'ok', '✔ Complies', false);
+      } else {
+        const showScope = rsD === 0;
+        setBadge('rs_badge', 'rs_scope', 'no', '✖ Over 60% of rear + side', showScope);
+      }
 
-      // Rear + side landscaped
-      if (isFinite(rlPct)) {
-        if (rlOK) { setPrimaryBadge('rl_badge','ok','✔ Complies'); clearSecondaryNote('rl_note'); }
-        else {
-          setPrimaryBadge('rl_badge','no','✖ Less than 40% landscaped');
-          setSecondaryNote('rl_note', rsD === 0);
-        }
-      } else { setPrimaryBadge('rl_badge','warn','ℹ Enter rear + side yard areas'); clearSecondaryNote('rl_note'); }
+      // Rear+side landscape
+      if (!rearSideArea) {
+        setBadge('rl_badge', 'rl_scope', 'warn', 'ℹ Enter rear + side yard area', false);
+      } else if (rlOK) {
+        setBadge('rl_badge', 'rl_scope', 'ok', '✔ At least 40% landscaped', false);
+      } else {
+        const showScope = rsD === 0;
+        setBadge('rl_badge', 'rl_scope', 'no', '✖ Less than 40% landscaped', showScope);
+      }
 
       // Stormwater / lot-wide impervious
-      $('imp_area').textContent = fmt(imp) + ' sf';
-      $('imp_pct').textContent = pct(impPct);
-      if (!isFinite(impPct)) {
-        setPrimaryBadge('imp_badge','warn','ℹ Enter lot & impervious inputs');
-        clearSecondaryNote('imp_note_local');
+      const impScopeShow = impOver && added === 0;
+      if (!lot || !Number.isFinite(impPct)) {
+        setBadge('imp_badge', 'imp_scope', 'warn', 'ℹ Enter lot, building, and paving inputs', false);
         $('imp_note').textContent = '';
       } else if (zone === 'RS-L' && impOver) {
-        setPrimaryBadge('imp_badge','no','✖ Exceeds 47% (RS-L)');
-        setSecondaryNote('imp_note_local', (fdD + foD + rsD) === 0);
-        $('imp_note').textContent = (fdD + foD + rsD) === 0
-          ? 'Per §13-30.750(C), engineer runoff calcs are required if impervious is increased or modified.'
-          : 'Per §13-30.750(C), submit civil engineer runoff calculations to the City Engineer.';
+        setBadge('imp_badge', 'imp_scope', 'no', '✖ Exceeds 47% (RS-L)', impScopeShow);
+        $('imp_note').textContent =
+          'Per §13-30.750(C), if impervious (including structures) is > 47% in RS-L, submit civil engineer runoff calculations to the City Engineer.';
       } else {
-        setPrimaryBadge('imp_badge','ok','✔ Within advisory RS-L threshold');
-        clearSecondaryNote('imp_note_local');
-        $('imp_note').textContent = (zone === 'OTHER')
-          ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.'
-          : '';
+        setBadge('imp_badge', 'imp_scope', 'ok',
+          zone === 'RS-L'
+            ? '✔ Within 47% advisory threshold (RS-L)'
+            : '✔ Info only — see City Engineer for other zones',
+          false);
+        $('imp_note').textContent =
+          zone === 'OTHER'
+            ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.'
+            : '';
       }
 
-      // Global nexus note (appears when something fails but is out-of-scope)
-      const anyFailNoScope =
-        (!fdOK && fdD === 0) ||
-        (!foOK && foD === 0) ||
-        (!rsOK && rsD === 0) ||
-        (isFinite(impPct) && zone==='RS-L' && impOver && (fdD + foD + rsD) === 0) ||
-        (!flOK && frontNoChange) ||
-        (!rlOK && rsD === 0);
-
-      const noteR = $('nonconformNoteResults');
-      const note4 = $('nonconformNote');
-      const noteTxt =
-        'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
-
-      if (anyFailNoScope) {
-        if (noteR) noteR.textContent = noteTxt;
-        if (note4) note4.textContent = noteTxt;
-      } else {
-        if (noteR) noteR.textContent = '';
-        if (note4) note4.textContent = '';
-      }
-
-      // Permit line + trigger banner
+      // 120 sf permit trigger
       const p = $('permit120');
-      if (added > 120) { p.classList.remove('hide'); p.className='alert warn'; p.textContent = `This project adds approximately ${fmt(added)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`; }
-      else if (added>0) { p.classList.remove('hide'); p.className='alert ok'; p.textContent = `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`; }
-      else if (added===0) { p.classList.add('hide'); }
-      else { p.classList.remove('hide'); p.className='alert ok'; p.textContent = 'Net reduction in paving — permit size threshold not triggered.'; }
+      if (added > 120) {
+        p.classList.remove('hide');
+        p.className = 'alert warn';
+        p.textContent =
+          `This project adds approximately ${fmt(added)} sf of new paving/hardscape. ` +
+          'A paving permit (Zoning Clearance) is required per §13-30.750(2).';
+      } else if (added > 0) {
+        p.classList.remove('hide');
+        p.className = 'alert ok';
+        p.textContent =
+          `New paving/hardscape ~ ${fmt(added)} sf (≤ 120 sf). ` +
+          'Zoning Clearance not triggered by size threshold.';
+      } else if (added === 0) {
+        p.classList.add('hide');
+      } else {
+        p.classList.remove('hide');
+        p.className = 'alert ok';
+        p.textContent = 'Net reduction in paving — permit size threshold not triggered.';
+      }
 
-      $('permitLine').textContent = added? ` (your additions: ~${fmt(added)} sf)` : '';
+      $('permitLine').textContent = added ? ` (your additions: ~${fmt(added)} sf)` : '';
 
-      // Reveal results panel
       $('results').classList.remove('hide');
-      $('results').scrollIntoView({behavior:'smooth', block:'start'});
+      $('results').scrollIntoView({ behavior:'smooth', block:'start' });
     }
 
-    // Wire up
+    // Wire up controls
     $('calc').addEventListener('click', calculateAndShow);
-    $('reset').addEventListener('click',()=>{
-      document.querySelectorAll('input').forEach(i=>i.value='');
-      $('zone').value='RS-L';
-      $('imperv_exist').textContent='—';
-      $('imperv_delta').textContent='—';
+
+    $('reset').addEventListener('click', () => {
+      document.querySelectorAll('input').forEach(i => i.value = '');
+      $('zone').value = 'RS-L';
+      $('imperv_exist').textContent = '—';
+      $('imperv_delta').textContent = '—';
       $('areaCheck').classList.add('hide');
       $('permit120').classList.add('hide');
       $('results').classList.add('hide');
-      // reset auto building state
+
       const auto = $('autoBldg');
       if (auto) auto.checked = true;
       $('autoBldgNote').textContent = '';
       $('bldg').readOnly = true;
     });
-    $('print').addEventListener('click',()=>window.print());
 
-    // Keep totals live + update building auto-calc while typing
-    document.querySelectorAll('input, select').forEach(el=>{
-      el.addEventListener('input', ()=>{
+    $('print').addEventListener('click', () => window.print());
+
+    // Keep totals live + building auto-calc while typing
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', () => {
         maybeAutoSetBuilding();
         updateImpervTotals();
       });
     });
 
-    // Also react when the checkbox is toggled
+    // React when checkbox toggled
     $('autoBldg')?.addEventListener('change', maybeAutoSetBuilding);
 
-    // Initialize on load (lock building input initially)
-    window.addEventListener('DOMContentLoaded', ()=>{
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
       $('bldg').readOnly = true;
     });
   </script>
 </body>
 </html>
+
 
 
 
