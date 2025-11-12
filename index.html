@@ -180,6 +180,19 @@
           <div id="imp_note" class="tiny" style="margin-top:6px"></div>
         </div>
       </div>
+<div class="panel hide" id="results" aria-live="polite">
+  <h2>Results</h2>
+  <!-- ...cards... -->
+
+  <!-- Add this line in HTML (NOT in <script>) -->
+  <p class="tiny" id="nonconformNoteResults" style="margin-top:8px;color:#555;"></p>
+
+  <div class="hr"></div>
+  <div class="tiny">
+    <!-- existing permit text -->
+  </div>
+</div>
+
       <div class="hr"></div>
       <div class="tiny">
         <div><strong>Permit trigger:</strong> New paving &amp; hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance). <span id="permitLine" class="muted"></span></div>
@@ -300,15 +313,51 @@
 
       // Permit trigger (count only additions)
       const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
+      // Nonconforming note (per-feature nexus):
+// Show the note only when a feature is over its threshold AND its delta is exactly 0.
+// For lot-wide RS-L impervious (>47%), show the note only if total delta across features is 0.
+const anyFailNoScope =
+  (!fdOK && fdD === 0) ||     // driveway over 35% but not being changed
+  (!foOK && foD === 0) ||     // front other hardscape over 25% but not being changed
+  (!rsOK && rsD === 0) ||     // rear+side over 60% but not being changed
+  (impOver && (fdD + foD + rsD) === 0); // RS-L impervious >47% but no paving deltas proposed
 
-      // Nonconforming note
-const note = $('nonconformNote');
-if (added === 0 && (impOver || !fdOK || !foOK || !flOK || !rsOK || !rlOK)) {
-  note.textContent =
-    'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
+const noteR = $('nonconformNoteResults'); // (in Results)
+const note4 = $('nonconformNote');        // (in Step 4, optional)
+const noteTxt =
+  'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
+
+if (anyFailNoScope) {
+  if (noteR) noteR.textContent = noteTxt;
+  if (note4) note4.textContent = noteTxt;
 } else {
-  note.textContent = '';
+  if (noteR) noteR.textContent = '';
+  if (note4) note4.textContent = '';
 }
+
+
+    // Nonconforming note (per-feature nexus):
+// Show the note only when a feature is over its threshold AND its delta is exactly 0.
+// For lot-wide RS-L impervious (>47%), show the note only if total delta across features is 0.
+const anyFailNoScope =
+  (!fdOK && fdD === 0) ||     // driveway over 35% but not being changed
+  (!foOK && foD === 0) ||     // front other hardscape over 25% but not being changed
+  (!rsOK && rsD === 0) ||     // rear+side over 60% but not being changed
+  (impOver && (fdD + foD + rsD) === 0); // RS-L impervious >47% but no paving deltas proposed
+
+const noteR = $('nonconformNoteResults'); // (in Results)
+const note4 = $('nonconformNote');        // (in Step 4, optional)
+const noteTxt =
+  'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
+
+if (anyFailNoScope) {
+  if (noteR) noteR.textContent = noteTxt;
+  if (note4) note4.textContent = noteTxt;
+} else {
+  if (noteR) noteR.textContent = '';
+  if (note4) note4.textContent = '';
+}
+      <p class="tiny" id="nonconformNoteResults" style="margin-top:8px;color:#555;"></p>
 
       // Area check
       const sumKnown = bldg + frontArea + rearSideArea;
