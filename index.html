@@ -98,7 +98,7 @@
       <div class="row">
         <label for="bldg">Building footprint (impervious; sf)</label>
         <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
-        <div class="help">Building footprint = plan-view area of all roofed structures. (Use auto-calc for multi-story homes.)</div>
+        <div class="help">Building footprint = plan-view area of all roofed structures. Use auto-calc for multi-story homes.</div>
       </div>
 
       <div class="row">
@@ -136,7 +136,6 @@
       <div class="btns"><button id="calc">Calculate</button><button id="reset">Reset</button><button id="print">Print / Save PDF</button></div>
       <div id="permit120" class="alert warn hide"></div>
       <p class="tiny" id="nonconformNote" style="margin-top:8px;color:#555;"></p>
-
     </div>
 
     <div class="panel hide" id="results" aria-live="polite">
@@ -180,18 +179,9 @@
           <div id="imp_note" class="tiny" style="margin-top:6px"></div>
         </div>
       </div>
-<div class="panel hide" id="results" aria-live="polite">
-  <h2>Results</h2>
-  <!-- ...cards... -->
 
-  <!-- Add this line in HTML (NOT in <script>) -->
-  <p class="tiny" id="nonconformNoteResults" style="margin-top:8px;color:#555;"></p>
-
-  <div class="hr"></div>
-  <div class="tiny">
-    <!-- existing permit text -->
-  </div>
-</div>
+      <!-- Nonconforming-but-out-of-scope note (shows after Calculate when applicable) -->
+      <p class="tiny" id="nonconformNoteResults" style="margin-top:8px;color:#555;"></p>
 
       <div class="hr"></div>
       <div class="tiny">
@@ -223,8 +213,8 @@
       const fdD=readNum('frontDrive_delta');
       const foD=readNum('frontOther_delta');
       const rsD=readNum('rearPave_delta');
-      const existing=fd0+fo0+rs0; // treating inputs as impermeable amounts
-      const delta=fdD+foD+rsD;    // delta to impermeable
+      const existing=fd0+fo0+rs0; // existing impermeable paving total
+      const delta=fdD+foD+rsD;    // proposed change to impermeable
       $('imperv_exist').textContent=fmt(existing);
       $('imperv_delta').textContent=fmt(delta);
       return {existing, delta};
@@ -236,9 +226,9 @@
 
     // --- Building auto-calc ---
     function maybeAutoSetBuilding() {
-      const auto = document.getElementById('autoBldg');
-      const note = document.getElementById('autoBldgNote');
-      const bldgInput = document.getElementById('bldg');
+      const auto = $('autoBldg');
+      const note = $('autoBldgNote');
+      const bldgInput = $('bldg');
       if (!auto) return;
 
       // Lock/unlock field
@@ -313,51 +303,28 @@
 
       // Permit trigger (count only additions)
       const added = [fdD, foD, rsD].reduce((s,v)=> s + Math.max(0,v||0), 0);
+
       // Nonconforming note (per-feature nexus):
-// Show the note only when a feature is over its threshold AND its delta is exactly 0.
-// For lot-wide RS-L impervious (>47%), show the note only if total delta across features is 0.
-const anyFailNoScope =
-  (!fdOK && fdD === 0) ||     // driveway over 35% but not being changed
-  (!foOK && foD === 0) ||     // front other hardscape over 25% but not being changed
-  (!rsOK && rsD === 0) ||     // rear+side over 60% but not being changed
-  (impOver && (fdD + foD + rsD) === 0); // RS-L impervious >47% but no paving deltas proposed
+      // Show the note only when a feature is over its threshold AND its delta is exactly 0.
+      // For lot-wide RS-L impervious (>47%), show the note only if total delta across features is 0.
+      const anyFailNoScope =
+        (!fdOK && fdD === 0) ||     // driveway over 35% but not being changed
+        (!foOK && foD === 0) ||     // front other hardscape over 25% but not being changed
+        (!rsOK && rsD === 0) ||     // rear+side over 60% but not being changed
+        (impOver && (fdD + foD + rsD) === 0); // RS-L impervious >47% but no paving deltas proposed
 
-const noteR = $('nonconformNoteResults'); // (in Results)
-const note4 = $('nonconformNote');        // (in Step 4, optional)
-const noteTxt =
-  'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
+      const noteR = $('nonconformNoteResults'); // (in Results)
+      const note4 = $('nonconformNote');        // (in Step 4, optional)
+      const noteTxt =
+        'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
 
-if (anyFailNoScope) {
-  if (noteR) noteR.textContent = noteTxt;
-  if (note4) note4.textContent = noteTxt;
-} else {
-  if (noteR) noteR.textContent = '';
-  if (note4) note4.textContent = '';
-}
-
-
-    // Nonconforming note (per-feature nexus):
-// Show the note only when a feature is over its threshold AND its delta is exactly 0.
-// For lot-wide RS-L impervious (>47%), show the note only if total delta across features is 0.
-const anyFailNoScope =
-  (!fdOK && fdD === 0) ||     // driveway over 35% but not being changed
-  (!foOK && foD === 0) ||     // front other hardscape over 25% but not being changed
-  (!rsOK && rsD === 0) ||     // rear+side over 60% but not being changed
-  (impOver && (fdD + foD + rsD) === 0); // RS-L impervious >47% but no paving deltas proposed
-
-const noteR = $('nonconformNoteResults'); // (in Results)
-const note4 = $('nonconformNote');        // (in Step 4, optional)
-const noteTxt =
-  'Note: If the total impervious or paving coverage exceeds a threshold but is outside of the scope of the proposal, no corrective action is required. Existing nonconforming site conditions are not subject to change unless modified by the applicant.';
-
-if (anyFailNoScope) {
-  if (noteR) noteR.textContent = noteTxt;
-  if (note4) note4.textContent = noteTxt;
-} else {
-  if (noteR) noteR.textContent = '';
-  if (note4) note4.textContent = '';
-}
-      <p class="tiny" id="nonconformNoteResults" style="margin-top:8px;color:#555;"></p>
+      if (anyFailNoScope) {
+        if (noteR) noteR.textContent = noteTxt;
+        if (note4) note4.textContent = noteTxt;
+      } else {
+        if (noteR) noteR.textContent = '';
+        if (note4) note4.textContent = '';
+      }
 
       // Area check
       const sumKnown = bldg + frontArea + rearSideArea;
@@ -417,10 +384,10 @@ if (anyFailNoScope) {
       $('permit120').classList.add('hide');
       $('results').classList.add('hide');
       // reset auto building state
-      const auto = document.getElementById('autoBldg');
+      const auto = $('autoBldg');
       if (auto) auto.checked = true;
-      document.getElementById('autoBldgNote').textContent = '';
-      document.getElementById('bldg').readOnly = true;
+      $('autoBldgNote').textContent = '';
+      $('bldg').readOnly = true;
     });
     $('print').addEventListener('click',()=>window.print());
 
@@ -433,13 +400,14 @@ if (anyFailNoScope) {
     });
 
     // Also react when the checkbox is toggled
-    document.getElementById('autoBldg')?.addEventListener('change', maybeAutoSetBuilding);
+    $('autoBldg')?.addEventListener('change', maybeAutoSetBuilding);
 
     // Initialize on load (lock building input initially)
     window.addEventListener('DOMContentLoaded', ()=>{
-      document.getElementById('bldg').readOnly = true;
+      $('bldg').readOnly = true;
     });
   </script>
 </body>
 </html>
+
 
