@@ -6,7 +6,7 @@
   <title>Residential Yard Paving Compliance Calculator — Hercules §13-30.750</title>
   <style>
     :root{
-      --bg:#f4f6f9; --panel:#ffffff; --text:#1b2a41; --muted:#64748b; --brand:#1f3f68; --brand-900:#173352; --accent:#d4a017; --line:#e5e9f2;
+      --bg:#f4f6f9; --panel:#ffffff; --text:#1b2a41; --muted:#64748b; --brand:#1f3f68; --brand-900:#173352; --line:#e5e9f2;
       --good:#198754; --bad:#d9534f; --warn:#e39b27;
     }
     * { box-sizing: border-box; }
@@ -24,10 +24,11 @@
     .help{grid-column:2 / span 1;font-size:.85rem;color:var(--muted);margin-top:-6px}
     .tiny{font-size:.9rem;color:var(--muted)}
     .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600;border:1px solid var(--line);background:#f8fafc;color:var(--text)}
     .ok{background:rgba(25,135,84,.08);color:#0f5132;border-color:rgba(25,135,84,.25)}
     .no{background:rgba(217,83,79,.08);color:#842029;border-color:rgba(217,83,79,.25)}
-    .warn{background:rgba(227,155,39,.10);color:#7a4a08;border-color:rgba(227,155,39,.28)}
+    .warn{background:rgba(227,155,39,.12);color:#7a4a08;border-color:rgba(227,155,39,.28)}
     .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
     .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 3px 14px rgba(31,63,104,.05)}
     .kv{display:flex;justify-content:space-between;gap:10px;margin:6px 0}
@@ -146,37 +147,60 @@
           <h3>Front: Driveway ≤ 35% of front yard</h3>
           <div class="kv"><span>Driveway area</span> <b id="fd_area">—</b></div>
           <div class="kv"><span>Percent of front yard</span> <b id="fd_pct">—</b></div>
-          <div><span id="fd_badge" class="badge">—</span></div>
+          <div class="badges">
+            <span id="fd_badge" class="badge">—</span>
+            <span id="fd_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
+          </div>
         </div>
+
         <div class="card" id="card_front_other">
           <h3>Front: Walkways &amp; other hardscape ≤ 25%</h3>
           <div class="kv"><span>Other hardscape area</span> <b id="fo_area">—</b></div>
           <div class="kv"><span>Percent of front yard</span> <b id="fo_pct">—</b></div>
-          <div><span id="fo_badge" class="badge">—</span></div>
+          <div class="badges">
+            <span id="fo_badge" class="badge">—</span>
+            <span id="fo_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
+          </div>
         </div>
+
         <div class="card" id="card_front_land">
           <h3>Front: Landscaped area ≥ 40%</h3>
           <div class="kv"><span>Landscaped area</span> <b id="fl_area">—</b></div>
           <div class="kv"><span>Percent of front yard</span> <b id="fl_pct">—</b></div>
-          <div><span id="fl_badge" class="badge">—</span></div>
+          <div class="badges">
+            <span id="fl_badge" class="badge">—</span>
+            <span id="fl_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
+          </div>
         </div>
+
         <div class="card" id="card_rs_pave">
           <h3>Rear + side: Total paving ≤ 60%</h3>
           <div class="kv"><span>Total paving</span> <b id="rs_area">—</b></div>
           <div class="kv"><span>Percent of rear + side</span> <b id="rs_pct">—</b></div>
-          <div><span id="rs_badge" class="badge">—</span></div>
+          <div class="badges">
+            <span id="rs_badge" class="badge">—</span>
+            <span id="rs_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
+          </div>
         </div>
+
         <div class="card" id="card_rs_land">
           <h3>Rear + side: Landscaped area ≥ 40%</h3>
           <div class="kv"><span>Landscaped area</span> <b id="rl_area">—</b></div>
           <div class="kv"><span>Percent of rear + side</span> <b id="rl_pct">—</b></div>
-          <div><span id="rl_badge" class="badge">—</span></div>
+          <div class="badges">
+            <span id="rl_badge" class="badge">—</span>
+            <span id="rl_note" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
+          </div>
         </div>
+
         <div class="card" id="card_storm">
           <h3>Stormwater: Impervious coverage (lot-wide)</h3>
           <div class="kv"><span>Impervious total (bldg + paving)</span> <b id="imp_area">—</b></div>
           <div class="kv"><span>Percent of lot</span> <b id="imp_pct">—</b></div>
-          <div><span id="imp_badge" class="badge">—</span></div>
+          <div class="badges">
+            <span id="imp_badge" class="badge">—</span>
+            <span id="imp_note_local" class="badge warn hide">⚠ No change proposed — no action required at this time.</span>
+          </div>
           <div id="imp_note" class="tiny" style="margin-top:6px"></div>
         </div>
       </div>
@@ -221,10 +245,19 @@
       return {existing, delta, fdD, foD, rsD};
     }
 
-    function setBadgeState(id, state, text){
+    function setPrimaryBadge(id, state, text){
       const el = $(id);
       el.className = 'badge ' + (state || '');
       el.textContent = text || '—';
+    }
+    function setSecondaryNote(id, show){
+      const el = $(id);
+      if (!el) return;
+      if (show) el.classList.remove('hide'); else el.classList.add('hide');
+    }
+    function clearSecondaryNote(id){
+      const el = $(id);
+      if (el) el.classList.add('hide');
     }
 
     // --- Building auto-calc ---
@@ -314,54 +347,70 @@
         ac.textContent = `Heads up: building + front + rear/side = ${fmt(sumKnown)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`;
       } else { ac.classList.add('hide'); ac.textContent=''; }
 
-      // ------- Per-card badge logic (green/red/yellow) -------
-      // Yellow appears when the feature is nonconforming BUT the delta for that feature is 0
+      // ------- Per-card badges (primary red/green + secondary yellow note) -------
+
+      // Front driveway
       if (isFinite(fdPct)) {
-        if (fdOK) setBadgeState('fd_badge','ok','✔ Complies');
-        else if (fdD === 0) setBadgeState('fd_badge','warn','⚠ Over 35% (no change proposed)');
-        else setBadgeState('fd_badge','no','✖ Does not comply');
-      } else setBadgeState('fd_badge','warn','ℹ Enter front yard & driveway');
+        if (fdOK) { setPrimaryBadge('fd_badge','ok','✔ Complies'); clearSecondaryNote('fd_note'); }
+        else {
+          setPrimaryBadge('fd_badge','no','✖ Over 35% of front yard');
+          setSecondaryNote('fd_note', fdD === 0);
+        }
+      } else { setPrimaryBadge('fd_badge','warn','ℹ Enter front yard & driveway'); clearSecondaryNote('fd_note'); }
 
+      // Front other hardscape
       if (isFinite(foPct)) {
-        if (foOK) setBadgeState('fo_badge','ok','✔ Complies');
-        else if (foD === 0) setBadgeState('fo_badge','warn','⚠ Over 25% (no change proposed)');
-        else setBadgeState('fo_badge','no','✖ Does not comply');
-      } else setBadgeState('fo_badge','warn','ℹ Enter front yard & other hardscape');
+        if (foOK) { setPrimaryBadge('fo_badge','ok','✔ Complies'); clearSecondaryNote('fo_note'); }
+        else {
+          setPrimaryBadge('fo_badge','no','✖ Over 25% of front yard');
+          setSecondaryNote('fo_note', foD === 0);
+        }
+      } else { setPrimaryBadge('fo_badge','warn','ℹ Enter front yard & other hardscape'); clearSecondaryNote('fo_note'); }
 
+      // Front landscape
+      const frontNoChange = (fdD === 0 && foD === 0);
       if (isFinite(flPct)) {
-        if (flOK) setBadgeState('fl_badge','ok','✔ Complies');
-        else if (fdD === 0 && foD === 0) setBadgeState('fl_badge','warn','⚠ < 40% landscaped (no change proposed)');
-        else setBadgeState('fl_badge','no','✖ Does not comply');
-      } else setBadgeState('fl_badge','warn','ℹ Enter front yard areas');
+        if (flOK) { setPrimaryBadge('fl_badge','ok','✔ Complies'); clearSecondaryNote('fl_note'); }
+        else {
+          setPrimaryBadge('fl_badge','no','✖ Less than 40% landscaped');
+          setSecondaryNote('fl_note', frontNoChange);
+        }
+      } else { setPrimaryBadge('fl_badge','warn','ℹ Enter front yard areas'); clearSecondaryNote('fl_note'); }
 
+      // Rear + side paving
       if (isFinite(rsPct)) {
-        if (rsOK) setBadgeState('rs_badge','ok','✔ Complies');
-        else if (rsD === 0) setBadgeState('rs_badge','warn','⚠ Over 60% (no change proposed)');
-        else setBadgeState('rs_badge','no','✖ Does not comply');
-      } else setBadgeState('rs_badge','warn','ℹ Enter rear + side yard & paving');
+        if (rsOK) { setPrimaryBadge('rs_badge','ok','✔ Complies'); clearSecondaryNote('rs_note'); }
+        else {
+          setPrimaryBadge('rs_badge','no','✖ Over 60% of rear + side');
+          setSecondaryNote('rs_note', rsD === 0);
+        }
+      } else { setPrimaryBadge('rs_badge','warn','ℹ Enter rear + side yard & paving'); clearSecondaryNote('rs_note'); }
 
+      // Rear + side landscaped
       if (isFinite(rlPct)) {
-        if (rlOK) setBadgeState('rl_badge','ok','✔ Complies');
-        else if (rsD === 0) setBadgeState('rl_badge','warn','⚠ < 40% landscaped (no change proposed)');
-        else setBadgeState('rl_badge','no','✖ Does not comply');
-      } else setBadgeState('rl_badge','warn','ℹ Enter rear + side yard areas');
+        if (rlOK) { setPrimaryBadge('rl_badge','ok','✔ Complies'); clearSecondaryNote('rl_note'); }
+        else {
+          setPrimaryBadge('rl_badge','no','✖ Less than 40% landscaped');
+          setSecondaryNote('rl_note', rsD === 0);
+        }
+      } else { setPrimaryBadge('rl_badge','warn','ℹ Enter rear + side yard areas'); clearSecondaryNote('rl_note'); }
 
-      // Stormwater / lot-wide impervious badge + note
+      // Stormwater / lot-wide impervious
       $('imp_area').textContent = fmt(imp) + ' sf';
       $('imp_pct').textContent = pct(impPct);
       if (!isFinite(impPct)) {
-        setBadgeState('imp_badge','warn','ℹ Enter lot & impervious inputs');
+        setPrimaryBadge('imp_badge','warn','ℹ Enter lot & impervious inputs');
+        clearSecondaryNote('imp_note_local');
         $('imp_note').textContent = '';
       } else if (zone === 'RS-L' && impOver) {
-        if ((fdD + foD + rsD) === 0) {
-          setBadgeState('imp_badge','warn','⚠ >47% existing (no change proposed)');
-          $('imp_note').textContent = 'Per §13-30.750(C), engineer runoff calcs are required if impervious is increased or modified.';
-        } else {
-          setBadgeState('imp_badge','no','✖ Exceeds 47% (RS-L)');
-          $('imp_note').textContent = 'Per §13-30.750(C), submit civil engineer runoff calculations to the City Engineer.';
-        }
+        setPrimaryBadge('imp_badge','no','✖ Exceeds 47% (RS-L)');
+        setSecondaryNote('imp_note_local', (fdD + foD + rsD) === 0);
+        $('imp_note').textContent = (fdD + foD + rsD) === 0
+          ? 'Per §13-30.750(C), engineer runoff calcs are required if impervious is increased or modified.'
+          : 'Per §13-30.750(C), submit civil engineer runoff calculations to the City Engineer.';
       } else {
-        setBadgeState('imp_badge','ok','✔ Within advisory RS-L threshold');
+        setPrimaryBadge('imp_badge','ok','✔ Within advisory RS-L threshold');
+        clearSecondaryNote('imp_note_local');
         $('imp_note').textContent = (zone === 'OTHER')
           ? 'For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.'
           : '';
@@ -372,7 +421,9 @@
         (!fdOK && fdD === 0) ||
         (!foOK && foD === 0) ||
         (!rsOK && rsD === 0) ||
-        (isFinite(impPct) && zone==='RS-L' && impOver && (fdD + foD + rsD) === 0);
+        (isFinite(impPct) && zone==='RS-L' && impOver && (fdD + foD + rsD) === 0) ||
+        (!flOK && frontNoChange) ||
+        (!rlOK && rsD === 0);
 
       const noteR = $('nonconformNoteResults');
       const note4 = $('nonconformNote');
