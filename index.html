@@ -356,17 +356,11 @@
       if (state === 'warn') main.classList.add('warn');
       main.textContent = mainText;
 
-      if (scope) {
-        if (showScope) {
-          scope.className = 'badge warn';
-          scope.textContent = '⚠ No change proposed — no action required at this time.';
-          scope.classList.remove('hide');
-        } else {
-          scope.classList.add('hide');
-          scope.textContent = '';
-        }
-      }
-    }
+     if (scope) {
+  scope.classList.add('hide');
+  scope.textContent = '';
+}
+
 
     function calculateAndShow() {
       maybeAutoSetBuilding();
