@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Residential Yard Paving Compliance Calculator — Hercules §13-30.750</title>
+  <style>
+    :root{
+      --bg:#f4f6f9; --panel:#ffffff; --text:#1b2a41; --muted:#64748b;
+      --brand:#1f3f68; --brand-900:#173352; --accent:#d4a017; --line:#e5e9f2;
+      --good:#198754; --bad:#d9534f; --warn:#e39b27;
+    }
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;height:100%;background:var(--bg);color:var(--text);
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji"
+    }
+    a{color:var(--brand);text-decoration:underline;text-underline-offset:2px}
+    a:hover{color:var(--brand-900)}
+    .wrap{max-width:980px;margin:0 auto;padding:28px}
+    h1{font-size:1.75rem;margin:0 0 16px;color:var(--brand)}
+    h2{font-size:1.1rem;margin:24px 0 8px;color:var(--brand)}
+    .panel{
+      background:var(--panel);border:1px solid var(--line);border-radius:14px;
+      padding:18px;margin-bottom:14px;box-shadow:0 6px 20px rgba(31,63,104,.06);
+      overflow:hidden;
+    }
+    .row{
+      display:grid;grid-template-columns:minmax(180px,260px) 1fr;
+      gap:14px;align-items:center;margin:10px 0;
+    }
+    label{font-size:.95rem;color:var(--brand-900)}
+    input[type="number"],select,input[type="text"]{
+      width:100%;padding:11px 12px;border-radius:10px;
+      border:1px solid var(--line);background:#fff;color:var(--text);
+    }
+    input::placeholder{color:#8590c7}
+    .help{grid-column:2/span 1;font-size:.85rem;color:var(--muted);margin-top:-6px}
+    .tiny{font-size:.9rem;color:var(--muted)}
+    .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;font-weight:600;
+      border:1px solid var(--line);background:#f8fafc;color:var(--text);
+    }
+    .badge.ok{background:rgba(25,135,84,.08);color:#0f5132;border-color:rgba(25,135,84,.25)}
+    .badge.no{background:rgba(217,83,79,.08);color:#842029;border-color:rgba(217,83,79,.25)}
+    .badge.warn{background:rgba(227,155,39,.10);color:#7a4a08;border-color:rgba(227,155,39,.28)}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+    .card{
+      background:#fff;border:1px solid var(--line);border-radius:12px;
+      padding:14px;box-shadow:0 3px 14px rgba(31,63,104,.05);
+    }
+    .kv{display:flex;justify-content:space-between;gap:10px;margin:6px 0}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      cursor:pointer;background:var(--brand);border:1px solid var(--brand);
+      color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;
+      box-shadow:0 2px 0 rgba(0,0,0,.04);
+    }
+    button:hover{background:var(--brand-900);border-color:var(--brand-900)}
+    .hr{height:1px;background:var(--line);margin:14px 0}
+    .alert{padding:10px;border-radius:10px;margin-top:10px}
+    .alert.warn{background:rgba(227,155,39,.08);border:1px solid rgba(227,155,39,.28);color:#7a4a08}
+    .alert.no{background:rgba(217,83,79,.08);border:1px solid rgba(217,83,79,.28);color:#842029}
+    .alert.ok{background:rgba(25,135,84,.08);border:1px solid rgba(25,135,84,.28);color:#0f5132}
+    .hide{display:none}
+
+    .figure{text-align:center;margin:12px 0 18px}
+    .figure img{
+      max-width:100%;height:auto;border:1px solid var(--line);
+      border-radius:10px;box-shadow:0 3px 14px rgba(31,63,104,.05);
+    }
+    .figure figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
+
+    /* Language switcher */
+    .lang-bar{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+      margin-bottom:18px;padding:10px 14px;
+      background:#fff;border:1px solid var(--line);border-radius:12px;
+      box-shadow:0 3px 10px rgba(31,63,104,.05);
+    }
+    .lang-bar span{font-size:.85rem;color:var(--muted);font-weight:600;margin-right:4px}
+    .lang-btn{
+      cursor:pointer;background:#f1f5f9;border:1px solid var(--line);
+      color:var(--text);padding:6px 14px;border-radius:999px;font-size:.9rem;
+      font-weight:600;transition:background .15s,border-color .15s;
+    }
+    .lang-btn:hover{background:#e2e8f0}
+    .lang-btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
+
+    .pagefoot{text-align:center;margin:18px 0 6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- Language Switcher -->
+    <div class="lang-bar">
+      <span data-i18n="langLabel">Language / Idioma / Wika / 语言:</span>
+      <button class="lang-btn active" data-lang="en">English</button>
+      <button class="lang-btn" data-lang="es">Español</button>
+      <button class="lang-btn" data-lang="tl">Filipino / Tagalog</button>
+      <button class="lang-btn" data-lang="zh">中文 (简体)</button>
+    </div>
+
+    <h1>
+      <span data-i18n="title">Residential Yard Paving Compliance Calculator</span>
+      <span class="tiny">
+        (<a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750"
+            target="_blank" rel="noopener noreferrer">
+          Hercules Municipal Code §13-30.750
+        </a>)
+      </span>
+    </h1>
+
+    <!-- Figure 13-30.751 -->
+    <figure class="figure" aria-describedby="fig-1330751">
+      <img
+        src="./Screenshot%202025-11-05%20160901.png"
+        alt="Figure 13-30.751 — Limits on Paving and Hardscaping for Residential Front, Rear, and Side Yards">
+      <figcaption id="fig-1330751" class="tiny" data-i18n="figCaption">
+        Figure 13-30.751 — Limits on Paving and Hardscaping for Residential Front, Rear, and Side Yards
+      </figcaption>
+    </figure>
+
+    <div class="panel">
+      <h2 data-i18n="whereTitle">Where to find your official lot &amp; building sizes</h2>
+      <p class="tiny" data-i18n="whereBody">
+        Look up recorded information via ParcelQuest:
+        <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>.
+        Then enter those numbers below.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec1">1) Lot &amp; Basics</h2>
+      <div class="row">
+        <label for="lot" data-i18n="lotLabel">Lot area (sf)</label>
+        <input id="lot" type="number" min="0" step="1" placeholder="e.g., 6,000"/>
+        <div class="help" data-i18n="lotHelp">Lot area = total parcel area.</div>
+      </div>
+      <div class="row">
+        <label for="zone" data-i18n="zoneLabel">Zoning</label>
+        <select id="zone">
+          <option value="RS-L">RS-L</option>
+          <option value="OTHER" data-i18n="zoneOther">Other residential</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="bldg" data-i18n="bldgLabel">Building footprint (impervious; sf)</label>
+        <input id="bldg" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
+        <div class="help" data-i18n="bldgHelp">
+          Building footprint = plan-view area of all roofed structures.
+          (Use auto-calc for most multi-story homes.)
+        </div>
+      </div>
+      <div class="row">
+        <label></label>
+        <label class="tiny" style="display:flex;align-items:center;gap:8px">
+          <input id="autoBldg" type="checkbox" checked>
+          <span data-i18n="autoCalcLabel">Auto-calculate building footprint as <em>lot − (front yard + rear/side yard)</em></span>
+        </label>
+      </div>
+      <p class="tiny" id="autoBldgNote" style="margin:4px 0 0 0;"></p>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec2">2) Yard Areas</h2>
+      <div class="row">
+        <label for="frontArea" data-i18n="frontAreaLabel">Front yard area (sf)</label>
+        <input id="frontArea" type="number" min="0" step="1" placeholder="e.g., 1,800"/>
+      </div>
+      <div class="row">
+        <label for="rearSideArea" data-i18n="rearSideAreaLabel">Rear + side yard area (sf)</label>
+        <input id="rearSideArea" type="number" min="0" step="1" placeholder="e.g., 3,600"/>
+      </div>
+      <div id="areaCheck" class="alert warn hide"></div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec3">3) Existing Paving (before project)</h2>
+      <div class="row">
+        <label for="frontDrive_exist" data-i18n="frontDriveExistLabel">Front driveway paving (sf)</label>
+        <input id="frontDrive_exist" type="number" min="0" step="1"/>
+      </div>
+      <div class="row">
+        <label for="frontOther_exist" data-i18n="frontOtherExistLabel">Front walkways &amp; other hardscape (sf)</label>
+        <input id="frontOther_exist" type="number" min="0" step="1"/>
+      </div>
+      <div class="row">
+        <label for="rearPave_exist" data-i18n="rearPaveExistLabel">Rear + side paving (sf)</label>
+        <input id="rearPave_exist" type="number" min="0" step="1"/>
+      </div>
+      <div class="row">
+        <label data-i18n="totalExistLabel">Total existing impermeable paving (sf)</label>
+        <div id="imperv_exist" class="tiny">—</div>
+      </div>
+      <p class="tiny" data-i18n="sec3Note">
+        Enter <em>impermeable</em> portions only (concrete, asphalt, compacted gravel).
+        Permeable pavers count toward yard hardscape limits but not toward lot-wide impervious total.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec4">4) Proposed Changes to Impervious Area (use negative numbers for removals)</h2>
+      <div class="row">
+        <label for="frontDrive_delta" data-i18n="frontDriveDeltaLabel">Δ Front driveway paving (sf)</label>
+        <input id="frontDrive_delta" type="number" step="1"/>
+      </div>
+      <div class="row">
+        <label for="frontOther_delta" data-i18n="frontOtherDeltaLabel">Δ Front walkways &amp; hardscape (sf)</label>
+        <input id="frontOther_delta" type="number" step="1"/>
+      </div>
+      <div class="row">
+        <label for="rearPave_delta" data-i18n="rearPaveDeltaLabel">Δ Rear + side paving (sf)</label>
+        <input id="rearPave_delta" type="number" step="1"/>
+      </div>
+      <div class="row">
+        <label data-i18n="totalDeltaLabel">Total proposed change in impermeable area (sf)</label>
+        <div id="imperv_delta" class="tiny">—</div>
+      </div>
+      <div class="btns">
+        <button id="calc" data-i18n="calcBtn">Calculate</button>
+        <button id="reset" data-i18n="resetBtn">Reset</button>
+        <button id="print" data-i18n="printBtn">Print / Save PDF</button>
+      </div>
+      <div id="permit120" class="alert warn hide"></div>
+    </div>
+
+    <div class="panel hide" id="results" aria-live="polite">
+      <h2 data-i18n="resultsTitle">Results</h2>
+      <div class="cards">
+        <div class="card" id="card_front_drive">
+          <h3 data-i18n="cardFdTitle">Front: Driveway ≤ 35% of front yard</h3>
+          <div class="kv"><span data-i18n="cardFdArea">Driveway area</span><b id="fd_area">—</b></div>
+          <div class="kv"><span data-i18n="cardFdPct">Percent of front yard</span><b id="fd_pct">—</b></div>
+          <div class="inline"><span id="fd_badge" class="badge">—</span></div>
+          <div class="inline"><span id="fd_scope" class="badge warn hide"></span></div>
+        </div>
+
+        <div class="card" id="card_front_other">
+          <h3 data-i18n="cardFoTitle">Front: Walkways &amp; other hardscape ≤ 25%</h3>
+          <div class="kv"><span data-i18n="cardFoArea">Other hardscape area</span><b id="fo_area">—</b></div>
+          <div class="kv"><span data-i18n="cardFoPct">Percent of front yard</span><b id="fo_pct">—</b></div>
+          <div class="inline"><span id="fo_badge" class="badge">—</span></div>
+          <div class="inline"><span id="fo_scope" class="badge warn hide"></span></div>
+        </div>
+
+        <div class="card" id="card_front_land">
+          <h3 data-i18n="cardFlTitle">Front: Landscaped area ≥ 40%</h3>
+          <div class="kv"><span data-i18n="cardFlArea">Landscaped area</span><b id="fl_area">—</b></div>
+          <div class="kv"><span data-i18n="cardFlPct">Percent of front yard</span><b id="fl_pct">—</b></div>
+          <div class="inline"><span id="fl_badge" class="badge">—</span></div>
+          <div class="inline"><span id="fl_scope" class="badge warn hide"></span></div>
+        </div>
+
+        <div class="card" id="card_rs_pave">
+          <h3 data-i18n="cardRsTitle">Rear + side: Total paving ≤ 60%</h3>
+          <div class="kv"><span data-i18n="cardRsArea">Total paving</span><b id="rs_area">—</b></div>
+          <div class="kv"><span data-i18n="cardRsPct">Percent of rear + side</span><b id="rs_pct">—</b></div>
+          <div class="inline"><span id="rs_badge" class="badge">—</span></div>
+          <div class="inline"><span id="rs_scope" class="badge warn hide"></span></div>
+        </div>
+
+        <div class="card" id="card_rs_land">
+          <h3 data-i18n="cardRlTitle">Rear + side: Landscaped area ≥ 40%</h3>
+          <div class="kv"><span data-i18n="cardRlArea">Landscaped area</span><b id="rl_area">—</b></div>
+          <div class="kv"><span data-i18n="cardRlPct">Percent of rear + side</span><b id="rl_pct">—</b></div>
+          <div class="inline"><span id="rl_badge" class="badge">—</span></div>
+          <div class="inline"><span id="rl_scope" class="badge warn hide"></span></div>
+        </div>
+
+        <div class="card" id="card_storm">
+          <h3 data-i18n="cardImpTitle">Stormwater: Impervious coverage (lot-wide)</h3>
+          <div class="kv"><span data-i18n="cardImpArea">Impervious total (bldg + paving)</span><b id="imp_area">—</b></div>
+          <div class="kv"><span data-i18n="cardImpPct">Percent of lot</span><b id="imp_pct">—</b></div>
+          <div class="inline"><span id="imp_badge" class="badge">—</span></div>
+          <div class="inline"><span id="imp_scope" class="badge warn hide"></span></div>
+          <div id="imp_note" class="tiny" style="margin-top:6px"></div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="tiny">
+        <div>
+          <strong data-i18n="permitTriggerLabel">Permit trigger:</strong>
+          <span data-i18n="permitTriggerBody">New paving &amp; hardscape additions over <b>120 sf</b>
+          require a paving permit (Zoning Clearance).</span>
+          <span id="permitLine" class="muted"></span>
+        </div>
+        <div data-i18n="footerNote">
+          "Landscaped area" excludes pavers, bricks, and other hard surfaces (even if permeable).
+          Calculations are advisory; verify with the City.
+          Source:
+          <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750"
+             target="_blank" rel="noopener">
+            Hercules Municipal Code §13-30.750
+          </a>.
+        </div>
+      </div>
+    </div>
+
+    <div class="pagefoot">
+      <p class="tiny">
+        <a href="https://www.herculesca.gov/home/showpublisheddocument/18190/638844704384000000"
+           target="_blank" rel="noopener noreferrer">
+          📄 <span data-i18n="downloadLink">Download the Paving Permit (PDF)</span>
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+  // ─────────────────────────────────────────────
+  // TRANSLATIONS
+  // ─────────────────────────────────────────────
+  const LANGS = {
+    en: {
+      langLabel:           "Language / Idioma / Wika / 语言:",
+      title:               "Residential Yard Paving Compliance Calculator",
+      figCaption:          "Figure 13-30.751 — Limits on Paving and Hardscaping for Residential Front, Rear, and Side Yards",
+      whereTitle:          "Where to find your official lot & building sizes",
+      whereBody:           `Look up recorded information via ParcelQuest: <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>. Then enter those numbers below.`,
+      sec1:                "1) Lot & Basics",
+      lotLabel:            "Lot area (sf)",
+      lotHelp:             "Lot area = total parcel area.",
+      zoneLabel:           "Zoning",
+      zoneOther:           "Other residential",
+      bldgLabel:           "Building footprint (impervious; sf)",
+      bldgHelp:            "Building footprint = plan-view area of all roofed structures. (Use auto-calc for most multi-story homes.)",
+      autoCalcLabel:       "Auto-calculate building footprint as <em>lot − (front yard + rear/side yard)</em>",
+      sec2:                "2) Yard Areas",
+      frontAreaLabel:      "Front yard area (sf)",
+      rearSideAreaLabel:   "Rear + side yard area (sf)",
+      sec3:                "3) Existing Paving (before project)",
+      frontDriveExistLabel:"Front driveway paving (sf)",
+      frontOtherExistLabel:"Front walkways & other hardscape (sf)",
+      rearPaveExistLabel:  "Rear + side paving (sf)",
+      totalExistLabel:     "Total existing impermeable paving (sf)",
+      sec3Note:            "Enter <em>impermeable</em> portions only (concrete, asphalt, compacted gravel). Permeable pavers count toward yard hardscape limits but not toward lot-wide impervious total.",
+      sec4:                "4) Proposed Changes to Impervious Area (use negative numbers for removals)",
+      frontDriveDeltaLabel:"Δ Front driveway paving (sf)",
+      frontOtherDeltaLabel:"Δ Front walkways & hardscape (sf)",
+      rearPaveDeltaLabel:  "Δ Rear + side paving (sf)",
+      totalDeltaLabel:     "Total proposed change in impermeable area (sf)",
+      calcBtn:             "Calculate",
+      resetBtn:            "Reset",
+      printBtn:            "Print / Save PDF",
+      resultsTitle:        "Results",
+      cardFdTitle:         "Front: Driveway ≤ 35% of front yard",
+      cardFdArea:          "Driveway area",
+      cardFdPct:           "Percent of front yard",
+      cardFoTitle:         "Front: Walkways & other hardscape ≤ 25%",
+      cardFoArea:          "Other hardscape area",
+      cardFoPct:           "Percent of front yard",
+      cardFlTitle:         "Front: Landscaped area ≥ 40%",
+      cardFlArea:          "Landscaped area",
+      cardFlPct:           "Percent of front yard",
+      cardRsTitle:         "Rear + side: Total paving ≤ 60%",
+      cardRsArea:          "Total paving",
+      cardRsPct:           "Percent of rear + side",
+      cardRlTitle:         "Rear + side: Landscaped area ≥ 40%",
+      cardRlArea:          "Landscaped area",
+      cardRlPct:           "Percent of rear + side",
+      cardImpTitle:        "Stormwater: Impervious coverage (lot-wide)",
+      cardImpArea:         "Impervious total (bldg + paving)",
+      cardImpPct:          "Percent of lot",
+      permitTriggerLabel:  "Permit trigger:",
+      permitTriggerBody:   "New paving & hardscape additions over <b>120 sf</b> require a paving permit (Zoning Clearance).",
+      footerNote:          '"Landscaped area" excludes pavers, bricks, and other hard surfaces (even if permeable). Calculations are advisory; verify with the City. Source: <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.',
+      downloadLink:        "Download the Paving Permit (PDF)",
+      // Dynamic messages
+      areaCheckMsg:        (sum, lot) => `Heads up: building + front + rear/side = ${fmt(sum)} sf, which differs from lot area (${fmt(lot)} sf). Double-check your areas.`,
+      autoBldgOverMsg:     "Heads up: front + rear/side exceed lot area — double-check yard entries.",
+      autoBldgDiffMsg:     "Note: yard + building differs from lot area by more than ~3%.",
+      badgeFdOK:           "✔ Complies",
+      badgeFdNO:           "✖ Over 35% of front yard",
+      badgeFoOK:           "✔ Complies",
+      badgeFoNO:           "✖ Over 25% of front yard",
+      badgeFlOK:           "✔ At least 40% landscaped",
+      badgeFlNO:           "✖ Less than 40% landscaped",
+      badgeRsOK:           "✔ Complies",
+      badgeRsNO:           "✖ Over 60% of rear + side",
+      badgeRlOK:           "✔ At least 40% landscaped",
+      badgeRlNO:           "✖ Less than 40% landscaped",
+      badgeEnterFront:     "ℹ Enter front yard area",
+      badgeEnterRear:      "ℹ Enter rear + side yard area",
+      badgeEnterAll:       "ℹ Enter lot, building, and paving inputs",
+      impOKrsl:            "✔ Within 47% advisory threshold (RS-L)",
+      impOKother:          "✔ Info only — see City Engineer for other zones",
+      impNOrsl:            "✖ Exceeds 47% (RS-L)",
+      impNoteRsl:          "Per §13-30.750(C), if impervious (including structures) is > 47% in RS-L, submit civil engineer runoff calculations to the City Engineer.",
+      impNoteOther:        "For other residential zones, engineer submittal may be required per administrative regulations. Consult the City Engineer.",
+      permit120Over:       (n) => `This project adds approximately ${fmt(n)} sf of new paving/hardscape. A paving permit (Zoning Clearance) is required per §13-30.750(2).`,
+      permit120Under:      (n) => `New paving/hardscape ~ ${fmt(n)} sf (≤ 120 sf). Zoning Clearance not triggered by size threshold.`,
+      permit120Remove:     "Net reduction in paving — permit size threshold not triggered.",
+      permitLineSfx:       (n) => ` (your additions: ~${fmt(n)} sf)`,
+    },
+
+    es: {
+      langLabel:           "Language / Idioma / Wika / 语言:",
+      title:               "Calculadora de Cumplimiento de Pavimentación de Patios Residenciales",
+      figCaption:          "Figura 13-30.751 — Límites de pavimentación y superficies duras para patios frontales, traseros y laterales residenciales",
+      whereTitle:          "Dónde encontrar el tamaño oficial de su lote y edificio",
+      whereBody:           `Consulte la información registrada en ParcelQuest: <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>. Luego ingrese esos números a continuación.`,
+      sec1:                "1) Lote y datos básicos",
+      lotLabel:            "Área del lote (pies²)",
+      lotHelp:             "Área del lote = área total de la parcela.",
+      zoneLabel:           "Zonificación",
+      zoneOther:           "Otra zona residencial",
+      bldgLabel:           "Huella del edificio (impermeable; pies²)",
+      bldgHelp:            "Huella del edificio = área en planta de todas las estructuras con techo. (Use cálculo automático para la mayoría de las casas de varios pisos.)",
+      autoCalcLabel:       "Calcular automáticamente la huella del edificio como <em>lote − (patio frontal + patio trasero/lateral)</em>",
+      sec2:                "2) Áreas de patio",
+      frontAreaLabel:      "Área del patio frontal (pies²)",
+      rearSideAreaLabel:   "Área del patio trasero + lateral (pies²)",
+      sec3:                "3) Pavimentación existente (antes del proyecto)",
+      frontDriveExistLabel:"Pavimentación del camino de entrada frontal (pies²)",
+      frontOtherExistLabel:"Aceras y otras superficies duras frontales (pies²)",
+      rearPaveExistLabel:  "Pavimentación trasera + lateral (pies²)",
+      totalExistLabel:     "Total de pavimentación impermeable existente (pies²)",
+      sec3Note:            "Ingrese solo las porciones <em>impermeables</em> (concreto, asfalto, grava compactada). Los adoquines permeables cuentan para los límites de superficies duras del patio, pero no para el total impermeable del lote.",
+      sec4:                "4) Cambios propuestos al área impermeable (use números negativos para remociones)",
+      frontDriveDeltaLabel:"Δ Pavimentación del camino de entrada frontal (pies²)",
+      frontOtherDeltaLabel:"Δ Aceras y superficies duras frontales (pies²)",
+      rearPaveDeltaLabel:  "Δ Pavimentación trasera + lateral (pies²)",
+      totalDeltaLabel:     "Cambio total propuesto en área impermeable (pies²)",
+      calcBtn:             "Calcular",
+      resetBtn:            "Reiniciar",
+      printBtn:            "Imprimir / Guardar PDF",
+      resultsTitle:        "Resultados",
+      cardFdTitle:         "Frontal: Camino de entrada ≤ 35% del patio frontal",
+      cardFdArea:          "Área del camino de entrada",
+      cardFdPct:           "Porcentaje del patio frontal",
+      cardFoTitle:         "Frontal: Aceras y otras superficies duras ≤ 25%",
+      cardFoArea:          "Área de otras superficies duras",
+      cardFoPct:           "Porcentaje del patio frontal",
+      cardFlTitle:         "Frontal: Área paisajística ≥ 40%",
+      cardFlArea:          "Área paisajística",
+      cardFlPct:           "Porcentaje del patio frontal",
+      cardRsTitle:         "Trasero + lateral: Pavimentación total ≤ 60%",
+      cardRsArea:          "Pavimentación total",
+      cardRsPct:           "Porcentaje del patio trasero + lateral",
+      cardRlTitle:         "Trasero + lateral: Área paisajística ≥ 40%",
+      cardRlArea:          "Área paisajística",
+      cardRlPct:           "Porcentaje del patio trasero + lateral",
+      cardImpTitle:        "Aguas pluviales: Cobertura impermeable (todo el lote)",
+      cardImpArea:         "Total impermeable (edificio + pavimentación)",
+      cardImpPct:          "Porcentaje del lote",
+      permitTriggerLabel:  "Requisito de permiso:",
+      permitTriggerBody:   "Las adiciones de pavimentación y superficies duras de más de <b>120 pies²</b> requieren un permiso de pavimentación (Autorización de Zonificación).",
+      footerNote:          '"Área paisajística" excluye adoquines, ladrillos y otras superficies duras (incluso si son permeables). Los cálculos son informativos; verifique con la Ciudad. Fuente: <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750" target="_blank" rel="noopener">Código Municipal de Hercules §13-30.750</a>.',
+      downloadLink:        "Descargar el permiso de pavimentación (PDF)",
+      areaCheckMsg:        (sum, lot) => `Atención: edificio + frontal + trasero/lateral = ${fmt(sum)} pies², lo que difiere del área del lote (${fmt(lot)} pies²). Verifique sus áreas.`,
+      autoBldgOverMsg:     "Atención: patio frontal + trasero/lateral excede el área del lote — revise las entradas del patio.",
+      autoBldgDiffMsg:     "Nota: patio + edificio difiere del área del lote en más de ~3%.",
+      badgeFdOK:           "✔ Cumple",
+      badgeFdNO:           "✖ Supera el 35% del patio frontal",
+      badgeFoOK:           "✔ Cumple",
+      badgeFoNO:           "✖ Supera el 25% del patio frontal",
+      badgeFlOK:           "✔ Al menos 40% con paisajismo",
+      badgeFlNO:           "✖ Menos del 40% con paisajismo",
+      badgeRsOK:           "✔ Cumple",
+      badgeRsNO:           "✖ Supera el 60% del patio trasero/lateral",
+      badgeRlOK:           "✔ Al menos 40% con paisajismo",
+      badgeRlNO:           "✖ Menos del 40% con paisajismo",
+      badgeEnterFront:     "ℹ Ingrese el área del patio frontal",
+      badgeEnterRear:      "ℹ Ingrese el área del patio trasero + lateral",
+      badgeEnterAll:       "ℹ Ingrese los datos del lote, edificio y pavimentación",
+      impOKrsl:            "✔ Dentro del umbral recomendado del 47% (RS-L)",
+      impOKother:          "✔ Solo informativo — consulte al Ingeniero de la Ciudad para otras zonas",
+      impNOrsl:            "✖ Supera el 47% (RS-L)",
+      impNoteRsl:          "Según §13-30.750(C), si el área impermeable (incluyendo estructuras) supera el 47% en RS-L, presente cálculos de escorrentía de un ingeniero civil al Ingeniero de la Ciudad.",
+      impNoteOther:        "Para otras zonas residenciales, puede requerirse la presentación de un informe de ingeniero según las regulaciones administrativas. Consulte al Ingeniero de la Ciudad.",
+      permit120Over:       (n) => `Este proyecto agrega aproximadamente ${fmt(n)} pies² de nueva pavimentación/superficie dura. Se requiere un permiso de pavimentación (Autorización de Zonificación) según §13-30.750(2).`,
+      permit120Under:      (n) => `Nueva pavimentación/superficie dura ~ ${fmt(n)} pies² (≤ 120 pies²). El umbral de tamaño para Autorización de Zonificación no se activa.`,
+      permit120Remove:     "Reducción neta de pavimentación — el umbral de tamaño de permiso no se activa.",
+      permitLineSfx:       (n) => ` (sus adiciones: ~${fmt(n)} pies²)`,
+    },
+
+    tl: {
+      langLabel:           "Language / Idioma / Wika / 语言:",
+      title:               "Kalkuladora ng Pagsunod sa Pag-pave ng Bakuran sa Bahay",
+      figCaption:          "Larawan 13-30.751 — Mga Limitasyon sa Pag-pave at Hardscaping para sa Harap, Likod, at Gilid na Bakuran ng Tirahan",
+      whereTitle:          "Kung saan mahahanap ang opisyal na laki ng iyong lote at gusali",
+      whereBody:           `Tingnan ang naitalang impormasyon sa pamamagitan ng ParcelQuest: <a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>. Pagkatapos ay ilagay ang mga numerong iyon sa ibaba.`,
+      sec1:                "1) Lote at Mga Pangunahing Impormasyon",
+      lotLabel:            "Sukat ng lote (talampakan²)",
+      lotHelp:             "Sukat ng lote = kabuuang sukat ng parsela.",
+      zoneLabel:           "Sona",
+      zoneOther:           "Iba pang residential",
+      bldgLabel:           "Sahig na sukat ng gusali (hindi tumatawid ng tubig; talampakan²)",
+      bldgHelp:            "Footprint ng gusali = lugar sa ibaba ng lahat ng istrakturang may bubong. (Gamitin ang auto-calc para sa karamihan ng multi-story na bahay.)",
+      autoCalcLabel:       "Awtomatikong kalkulahin ang footprint ng gusali bilang <em>lote − (harap na bakuran + likod/gilid na bakuran)</em>",
+      sec2:                "2) Mga Sukat ng Bakuran",
+      frontAreaLabel:      "Sukat ng harap na bakuran (talampakan²)",
+      rearSideAreaLabel:   "Sukat ng likod + gilid na bakuran (talampakan²)",
+      sec3:                "3) Kasalukuyang Pag-pave (bago ang proyekto)",
+      frontDriveExistLabel:"Pag-pave ng harap na driveway (talampakan²)",
+      frontOtherExistLabel:"Mga landas at iba pang hardscape sa harap (talampakan²)",
+      rearPaveExistLabel:  "Pag-pave sa likod + gilid (talampakan²)",
+      totalExistLabel:     "Kabuuang kasalukuyang hindi tumatawid ng tubig na pag-pave (talampakan²)",
+      sec3Note:            "Ilagay lamang ang mga bahagi na <em>hindi tumatawid ng tubig</em> (kongkreto, aspalto, siksik na graba). Ang mga permeable na paver ay binibilang sa mga limitasyon ng hardscape ng bakuran ngunit hindi sa kabuuang impervious ng lote.",
+      sec4:                "4) Mga Iminungkahing Pagbabago sa Impervious na Lugar (gumamit ng negatibong numero para sa mga pagtanggal)",
+      frontDriveDeltaLabel:"Δ Pag-pave ng harap na driveway (talampakan²)",
+      frontOtherDeltaLabel:"Δ Mga landas at hardscape sa harap (talampakan²)",
+      rearPaveDeltaLabel:  "Δ Pag-pave sa likod + gilid (talampakan²)",
+      totalDeltaLabel:     "Kabuuang iminungkahing pagbabago sa impermeable na lugar (talampakan²)",
+      calcBtn:             "Kalkulahin",
+      resetBtn:            "I-reset",
+      printBtn:            "I-print / I-save bilang PDF",
+      resultsTitle:        "Mga Resulta",
+      cardFdTitle:         "Harap: Driveway ≤ 35% ng harap na bakuran",
+      cardFdArea:          "Sukat ng driveway",
+      cardFdPct:           "Porsyento ng harap na bakuran",
+      cardFoTitle:         "Harap: Mga landas at iba pang hardscape ≤ 25%",
+      cardFoArea:          "Sukat ng iba pang hardscape",
+      cardFoPct:           "Porsyento ng harap na bakuran",
+      cardFlTitle:         "Harap: Lugar na may halaman ≥ 40%",
+      cardFlArea:          "Lugar na may halaman",
+      cardFlPct:           "Porsyento ng harap na bakuran",
+      cardRsTitle:         "Likod + gilid: Kabuuang pag-pave ≤ 60%",
+      cardRsArea:          "Kabuuang pag-pave",
+      cardRsPct:           "Porsyento ng likod + gilid na bakuran",
+      cardRlTitle:         "Likod + gilid: Lugar na may halaman ≥ 40%",
+      cardRlArea:          "Lugar na may halaman",
+      cardRlPct:           "Porsyento ng likod + gilid na bakuran",
+      cardImpTitle:        "Ulan: Impervious na saklaw (buong lote)",
+      cardImpArea:         "Kabuuang impervious (gusali + pag-pave)",
+      cardImpPct:          "Porsyento ng lote",
+      permitTriggerLabel:  "Kinakailangang permiso:",
+      permitTriggerBody:   "Ang mga karagdagan sa pag-pave at hardscape na higit sa <b>120 talampakan²</b> ay nangangailangan ng permiso sa pag-pave (Zoning Clearance).",
+      footerNote:          'Ang "lugar na may halaman" ay hindi kasama ang mga paver, ladrilyo, at iba pang matitigas na ibabaw (kahit na permeable). Ang mga kalkulasyon ay para sa impormasyon lamang; i-verify sa Lungsod. Pinagmulan: <a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750" target="_blank" rel="noopener">Hercules Municipal Code §13-30.750</a>.',
+      downloadLink:        "I-download ang Paving Permit (PDF)",
+      areaCheckMsg:        (sum, lot) => `Paalala: gusali + harap + likod/gilid = ${fmt(sum)} talampakan², na naiiba sa sukat ng lote (${fmt(lot)} talampakan²). I-double-check ang iyong mga sukat.`,
+      autoBldgOverMsg:     "Paalala: ang harap + likod/gilid na bakuran ay lumagpas sa sukat ng lote — i-double-check ang mga entry ng bakuran.",
+      autoBldgDiffMsg:     "Paalala: ang bakuran + gusali ay naiiba sa sukat ng lote ng higit sa ~3%.",
+      badgeFdOK:           "✔ Sumusunod",
+      badgeFdNO:           "✖ Higit sa 35% ng harap na bakuran",
+      badgeFoOK:           "✔ Sumusunod",
+      badgeFoNO:           "✖ Higit sa 25% ng harap na bakuran",
+      badgeFlOK:           "✔ Hindi bababa sa 40% ang may halaman",
+      badgeFlNO:           "✖ Mas mababa sa 40% ang may halaman",
+      badgeRsOK:           "✔ Sumusunod",
+      badgeRsNO:           "✖ Higit sa 60% ng likod/gilid na bakuran",
+      badgeRlOK:           "✔ Hindi bababa sa 40% ang may halaman",
+      badgeRlNO:           "✖ Mas mababa sa 40% ang may halaman",
+      badgeEnterFront:     "ℹ Ilagay ang sukat ng harap na bakuran",
+      badgeEnterRear:      "ℹ Ilagay ang sukat ng likod + gilid na bakuran",
+      badgeEnterAll:       "ℹ Ilagay ang impormasyon ng lote, gusali, at pag-pave",
+      impOKrsl:            "✔ Nasa loob ng 47% na rekomendasyon (RS-L)",
+      impOKother:          "✔ Para sa impormasyon lamang — kumonsulta sa City Engineer para sa ibang mga sona",
+      impNOrsl:            "✖ Lumagpas sa 47% (RS-L)",
+      impNoteRsl:          "Ayon sa §13-30.750(C), kung ang impervious (kasama ang mga istraktura) ay > 47% sa RS-L, magsumite ng civil engineer runoff calculations sa City Engineer.",
+      impNoteOther:        "Para sa ibang residential na mga sona, maaaring kailanganin ang pagsumite ng inhinyero ayon sa mga regulasyon. Kumonsulta sa City Engineer.",
+      permit120Over:       (n) => `Ang proyektong ito ay nagdaragdag ng humigit-kumulang ${fmt(n)} talampakan² ng bagong pag-pave/hardscape. Kinakailangan ang permiso sa pag-pave (Zoning Clearance) ayon sa §13-30.750(2).`,
+      permit120Under:      (n) => `Bagong pag-pave/hardscape ~ ${fmt(n)} talampakan² (≤ 120 talampakan²). Hindi naabot ang limitasyon ng laki para sa Zoning Clearance.`,
+      permit120Remove:     "Nabawasan ang pag-pave — hindi naabot ang limitasyon ng laki ng permiso.",
+      permitLineSfx:       (n) => ` (ang iyong mga karagdagan: ~${fmt(n)} talampakan²)`,
+    },
+
+    zh: {
+      langLabel:           "Language / Idioma / Wika / 语言:",
+      title:               "住宅庭院铺面合规计算器",
+      figCaption:          "图 13-30.751 — 住宅前院、后院及侧院的铺面与硬景观限制",
+      whereTitle:          "如何查找您的官方地块和建筑面积",
+      whereBody:           `通过 ParcelQuest 查询已记录信息：<a href="https://assr.parcelquest.com/" target="_blank" rel="noopener">assr.parcelquest.com</a>。然后在下方输入相关数字。`,
+      sec1:                "1) 地块基本信息",
+      lotLabel:            "地块面积（平方英尺）",
+      lotHelp:             "地块面积 = 整个地块的总面积。",
+      zoneLabel:           "分区",
+      zoneOther:           "其他住宅区",
+      bldgLabel:           "建筑占地面积（不透水；平方英尺）",
+      bldgHelp:            "建筑占地面积 = 所有有屋顶建筑在平面图上的面积。（多层住宅通常使用自动计算。）",
+      autoCalcLabel:       "自动计算建筑占地面积：<em>地块 − （前院 + 后院/侧院）</em>",
+      sec2:                "2) 庭院面积",
+      frontAreaLabel:      "前院面积（平方英尺）",
+      rearSideAreaLabel:   "后院 + 侧院面积（平方英尺）",
+      sec3:                "3) 现有铺面（项目前）",
+      frontDriveExistLabel:"前车道铺面（平方英尺）",
+      frontOtherExistLabel:"前院小径及其他硬景观（平方英尺）",
+      rearPaveExistLabel:  "后院 + 侧院铺面（平方英尺）",
+      totalExistLabel:     "现有不透水铺面合计（平方英尺）",
+      sec3Note:            "仅输入<em>不透水</em>部分（混凝土、沥青、压实碎石）。透水砖计入庭院硬景观限额，但不计入地块整体不透水面积。",
+      sec4:                "4) 不透水面积变更提案（移除用负数表示）",
+      frontDriveDeltaLabel:"Δ 前车道铺面（平方英尺）",
+      frontOtherDeltaLabel:"Δ 前院小径及硬景观（平方英尺）",
+      rearPaveDeltaLabel:  "Δ 后院 + 侧院铺面（平方英尺）",
+      totalDeltaLabel:     "不透水面积变更合计（平方英尺）",
+      calcBtn:             "计算",
+      resetBtn:            "重置",
+      printBtn:            "打印 / 保存 PDF",
+      resultsTitle:        "计算结果",
+      cardFdTitle:         "前院：车道 ≤ 前院面积的 35%",
+      cardFdArea:          "车道面积",
+      cardFdPct:           "占前院百分比",
+      cardFoTitle:         "前院：小径及其他硬景观 ≤ 25%",
+      cardFoArea:          "其他硬景观面积",
+      cardFoPct:           "占前院百分比",
+      cardFlTitle:         "前院：绿化面积 ≥ 40%",
+      cardFlArea:          "绿化面积",
+      cardFlPct:           "占前院百分比",
+      cardRsTitle:         "后院 + 侧院：铺面合计 ≤ 60%",
+      cardRsArea:          "铺面合计",
+      cardRsPct:           "占后院 + 侧院百分比",
+      cardRlTitle:         "后院 + 侧院：绿化面积 ≥ 40%",
+      cardRlArea:          "绿化面积",
+      cardRlPct:           "占后院 + 侧院百分比",
+      cardImpTitle:        "雨水管理：不透水覆盖率（全地块）",
+      cardImpArea:         "不透水合计（建筑 + 铺面）",
+      cardImpPct:          "占地块百分比",
+      permitTriggerLabel:  "许可证触发条件：",
+      permitTriggerBody:   "新增铺面及硬景观超过 <b>120 平方英尺</b>需申请铺面许可证（分区审批）。",
+      footerNote:          '"绿化面积"不包括砖块、铺路石及其他硬质表面（即使透水）。计算结果仅供参考，请向市政府核实。来源：<a href="https://www.codepublishing.com/CA/Hercules/#!/Hercules13/Hercules1330.html#13-30.750" target="_blank" rel="noopener">Hercules 市政法典 §13-30.750</a>。',
+      downloadLink:        "下载铺面许可申请表（PDF）",
+      areaCheckMsg:        (sum, lot) => `注意：建筑 + 前院 + 后院/侧院 = ${fmt(sum)} 平方英尺，与地块面积（${fmt(lot)} 平方英尺）不符，请核对各项面积。`,
+      autoBldgOverMsg:     "注意：前院 + 后院/侧院面积超过地块面积，请核对庭院数据。",
+      autoBldgDiffMsg:     "提示：庭院 + 建筑面积与地块面积相差超过约 3%。",
+      badgeFdOK:           "✔ 符合规定",
+      badgeFdNO:           "✖ 超过前院的 35%",
+      badgeFoOK:           "✔ 符合规定",
+      badgeFoNO:           "✖ 超过前院的 25%",
+      badgeFlOK:           "✔ 绿化面积至少达到 40%",
+      badgeFlNO:           "✖ 绿化面积不足 40%",
+      badgeRsOK:           "✔ 符合规定",
+      badgeRsNO:           "✖ 超过后院/侧院的 60%",
+      badgeRlOK:           "✔ 绿化面积至少达到 40%",
+      badgeRlNO:           "✖ 绿化面积不足 40%",
+      badgeEnterFront:     "ℹ 请输入前院面积",
+      badgeEnterRear:      "ℹ 请输入后院 + 侧院面积",
+      badgeEnterAll:       "ℹ 请输入地块、建筑及铺面数据",
+      impOKrsl:            "✔ 在 47% 建议阈值内（RS-L）",
+      impOKother:          "✔ 仅供参考 — 其他分区请咨询城市工程师",
+      impNOrsl:            "✖ 超过 47%（RS-L）",
+      impNoteRsl:          "根据 §13-30.750(C)，RS-L 区不透水面积（含建筑）超过 47% 时，需向城市工程师提交土木工程师的径流计算报告。",
+      impNoteOther:        "其他住宅区可能需根据行政法规提交工程师报告，请咨询城市工程师。",
+      permit120Over:       (n) => `本项目新增约 ${fmt(n)} 平方英尺的铺面/硬景观，根据 §13-30.750(2) 须申请铺面许可证（分区审批）。`,
+      permit120Under:      (n) => `新增铺面/硬景观约 ${fmt(n)} 平方英尺（≤ 120 平方英尺），未触发分区审批面积阈值。`,
+      permit120Remove:     "铺面净减少 — 未触发许可证面积阈值。",
+      permitLineSfx:       (n) => `（新增面积：约 ${fmt(n)} 平方英尺）`,
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // CURRENT LANGUAGE STATE
+  // ─────────────────────────────────────────────
+  let currentLang = 'en';
+  const T = () => LANGS[currentLang];
+
+  // ─────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────
+  const $    = id => document.getElementById(id);
+  const fmt  = n  => Number.isFinite(n) ? new Intl.NumberFormat().format(n) : '—';
+  const readNum = id => parseFloat($(id).value) || 0;
+
+  // ─────────────────────────────────────────────
+  // APPLY TRANSLATIONS TO DOM
+  // ─────────────────────────────────────────────
+  function applyTranslations(lang) {
+    currentLang = lang;
+    const t = LANGS[lang];
+
+    // Simple [data-i18n] attribute elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (typeof t[key] === 'string') {
+        el.innerHTML = t[key];
+      }
+    });
+
+    // Zone select option text
+    const zoneOpt = document.querySelector('#zone option[value="OTHER"]');
+    if (zoneOpt) zoneOpt.textContent = t.zoneOther;
+
+    // Update html lang attribute
+    document.documentElement.lang =
+      lang === 'zh' ? 'zh-Hans' :
+      lang === 'tl' ? 'fil' :
+      lang === 'es' ? 'es' : 'en';
+
+    // Active button styling
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // AUTO-CALC BUILDING FOOTPRINT
+  // ─────────────────────────────────────────────
+  function maybeAutoSetBuilding() {
+    const auto = $('autoBldg');
+    const note = $('autoBldgNote');
+    const bldgInput = $('bldg');
+    if (!auto) return;
+    bldgInput.readOnly = !!auto.checked;
+    if (!auto.checked) { note.textContent = ''; return; }
+    const lot   = readNum('lot');
+    const front = readNum('frontArea');
+    const rear  = readNum('rearSideArea');
+    if (lot <= 0 || (front <= 0 && rear <= 0)) { note.textContent = ''; return; }
+    const calc = lot - (front + rear);
+    const val  = Math.max(0, Math.round(calc));
+    bldgInput.value = val;
+    const t = T();
+    if (calc < 0) {
+      note.textContent = t.autoBldgOverMsg;
+    } else if (Math.abs((front + rear + val) - lot) > lot * 0.03) {
+      note.textContent = t.autoBldgDiffMsg;
+    } else {
+      note.textContent = '';
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // LIVE TOTALS
+  // ─────────────────────────────────────────────
+  function updateImpervTotals() {
+    const fd0 = readNum('frontDrive_exist');
+    const fo0 = readNum('frontOther_exist');
+    const rs0 = readNum('rearPave_exist');
+    const fdD = readNum('frontDrive_delta');
+    const foD = readNum('frontOther_delta');
+    const rsD = readNum('rearPave_delta');
+    const existing = fd0 + fo0 + rs0;
+    const delta    = fdD + foD + rsD;
+    $('imperv_exist').textContent = fmt(existing);
+    $('imperv_delta').textContent = fmt(delta);
+    return { existing, delta };
+  }
+
+  // ─────────────────────────────────────────────
+  // BADGE HELPER
+  // ─────────────────────────────────────────────
+  function setBadge(mainId, scopeId, state, mainText) {
+    const main  = $(mainId);
+    const scope = $(scopeId);
+    if (!main) return;
+    main.className = 'badge';
+    if (state === 'ok')   main.classList.add('ok');
+    if (state === 'no')   main.classList.add('no');
+    if (state === 'warn') main.classList.add('warn');
+    main.textContent = mainText;
+    if (scope) { scope.classList.add('hide'); scope.textContent = ''; }
+  }
+
+  // ─────────────────────────────────────────────
+  // MAIN CALCULATION
+  // ─────────────────────────────────────────────
+  function calculateAndShow() {
+    maybeAutoSetBuilding();
+    const t = T();
+
+    const lot          = readNum('lot');
+    const zone         = $('zone').value;
+    const bldg         = readNum('bldg');
+    const frontArea    = readNum('frontArea');
+    const rearSideArea = readNum('rearSideArea');
+
+    const fd0 = readNum('frontDrive_exist');
+    const fo0 = readNum('frontOther_exist');
+    const rs0 = readNum('rearPave_exist');
+    const fdD = readNum('frontDrive_delta');
+    const foD = readNum('frontOther_delta');
+    const rsD = readNum('rearPave_delta');
+
+    const fd = Math.max(0, fd0 + fdD);
+    const fo = Math.max(0, fo0 + foD);
+    const rs = Math.max(0, rs0 + rsD);
+
+    const frontLand = Math.max(0, frontArea - (fd + fo));
+    const rearLand  = Math.max(0, rearSideArea - rs);
+
+    const fdPct = frontArea > 0 ? fd / frontArea : NaN;
+    const foPct = frontArea > 0 ? fo / frontArea : NaN;
+    const flPct = frontArea > 0 ? frontLand / frontArea : NaN;
+    const rsPct = rearSideArea > 0 ? rs / rearSideArea : NaN;
+    const rlPct = rearSideArea > 0 ? rearLand / rearSideArea : NaN;
+
+    const fdOK = fdPct <= 0.35 + 1e-9;
+    const foOK = foPct <= 0.25 + 1e-9;
+    const flOK = flPct >= 0.40 - 1e-9;
+    const rsOK = rsPct <= 0.60 + 1e-9;
+    const rlOK = rlPct >= 0.40 - 1e-9;
+
+    const { existing: impExist, delta: impDelta } = updateImpervTotals();
+    const impPaving = Math.max(0, impExist + impDelta);
+    const imp       = impPaving + bldg;
+    const impPct    = lot > 0 ? imp / lot : NaN;
+    const impOver   = zone === 'RS-L' && impPct > 0.47 + 1e-9;
+
+    const added = [fdD, foD, rsD].reduce((s, v) => s + Math.max(0, v || 0), 0);
+
+    // Area sanity check
+    const sumKnown = bldg + frontArea + rearSideArea;
+    const ac = $('areaCheck');
+    if (lot > 0 && sumKnown > 0 && Math.abs(sumKnown - lot) > lot * 0.03) {
+      ac.classList.remove('hide');
+      ac.textContent = t.areaCheckMsg(sumKnown, lot);
+    } else {
+      ac.classList.add('hide');
+      ac.textContent = '';
+    }
+
+    // Write outputs
+    const setSF  = (id, val) => { const el = $(id); if (el) el.textContent = Number.isFinite(val) ? `${fmt(val)} sf` : '—'; };
+    const setPct = (id, val) => { const el = $(id); if (el) el.textContent = Number.isFinite(val) ? `${(val*100).toFixed(1)}%` : '—'; };
+
+    setSF('fd_area', fd); setSF('fo_area', fo); setSF('rs_area', rs);
+    setSF('fl_area', frontLand); setSF('rl_area', rearLand);
+    setPct('fd_pct', fdPct); setPct('fo_pct', foPct); setPct('rs_pct', rsPct);
+    setPct('fl_pct', flPct); setPct('rl_pct', rlPct);
+    $('imp_area').textContent = Number.isFinite(imp) ? `${fmt(imp)} sf` : '—';
+    $('imp_pct').textContent  = Number.isFinite(impPct) ? `${(impPct*100).toFixed(1)}%` : '—';
+
+    // Badges
+    if (!frontArea) {
+      setBadge('fd_badge','fd_scope','warn', t.badgeEnterFront);
+      setBadge('fo_badge','fo_scope','warn', t.badgeEnterFront);
+      setBadge('fl_badge','fl_scope','warn', t.badgeEnterFront);
+    } else {
+      setBadge('fd_badge','fd_scope', fdOK ? 'ok' : 'no', fdOK ? t.badgeFdOK : t.badgeFdNO);
+      setBadge('fo_badge','fo_scope', foOK ? 'ok' : 'no', foOK ? t.badgeFoOK : t.badgeFoNO);
+      setBadge('fl_badge','fl_scope', flOK ? 'ok' : 'no', flOK ? t.badgeFlOK : t.badgeFlNO);
+    }
+
+    if (!rearSideArea) {
+      setBadge('rs_badge','rs_scope','warn', t.badgeEnterRear);
+      setBadge('rl_badge','rl_scope','warn', t.badgeEnterRear);
+    } else {
+      setBadge('rs_badge','rs_scope', rsOK ? 'ok' : 'no', rsOK ? t.badgeRsOK : t.badgeRsNO);
+      setBadge('rl_badge','rl_scope', rlOK ? 'ok' : 'no', rlOK ? t.badgeRlOK : t.badgeRlNO);
+    }
+
+    // Stormwater / lot-wide
+    if (!lot || !Number.isFinite(impPct)) {
+      setBadge('imp_badge','imp_scope','warn', t.badgeEnterAll);
+      $('imp_note').textContent = '';
+    } else if (zone === 'RS-L' && impOver) {
+      setBadge('imp_badge','imp_scope','no', t.impNOrsl);
+      $('imp_note').textContent = t.impNoteRsl;
+    } else {
+      setBadge('imp_badge','imp_scope','ok', zone === 'RS-L' ? t.impOKrsl : t.impOKother);
+      $('imp_note').textContent = zone === 'OTHER' ? t.impNoteOther : '';
+    }
+
+    // 120 sf permit trigger
+    const p = $('permit120');
+    if (added > 120) {
+      p.classList.remove('hide'); p.className = 'alert warn';
+      p.textContent = t.permit120Over(added);
+    } else if (added > 0) {
+      p.classList.remove('hide'); p.className = 'alert ok';
+      p.textContent = t.permit120Under(added);
+    } else if (added === 0) {
+      p.classList.add('hide');
+    } else {
+      p.classList.remove('hide'); p.className = 'alert ok';
+      p.textContent = t.permit120Remove;
+    }
+
+    $('permitLine').textContent = added ? t.permitLineSfx(added) : '';
+
+    $('results').classList.remove('hide');
+    $('results').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  // ─────────────────────────────────────────────
+  // EVENT WIRING
+  // ─────────────────────────────────────────────
+  $('calc').addEventListener('click', calculateAndShow);
+
+  $('reset').addEventListener('click', () => {
+    document.querySelectorAll('input').forEach(i => i.value = '');
+    $('zone').value = 'RS-L';
+    $('imperv_exist').textContent = '—';
+    $('imperv_delta').textContent = '—';
+    $('areaCheck').classList.add('hide');
+    $('permit120').classList.add('hide');
+    $('results').classList.add('hide');
+    const auto = $('autoBldg');
+    if (auto) auto.checked = true;
+    $('autoBldgNote').textContent = '';
+    $('bldg').readOnly = true;
+  });
+
+  $('print').addEventListener('click', () => window.print());
+
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', () => {
+      maybeAutoSetBuilding();
+      updateImpervTotals();
+    });
+  });
+
+  $('autoBldg')?.addEventListener('change', maybeAutoSetBuilding);
+
+  // Language switcher buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyTranslations(btn.getAttribute('data-lang'));
+    });
+  });
+
+  // Init
+  window.addEventListener('DOMContentLoaded', () => {
+    $('bldg').readOnly = true;
+    applyTranslations('en');
+  });
+  </script>
+</body>
+</html>
